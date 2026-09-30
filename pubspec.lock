@@ -458,7 +458,7 @@ packages:
     description:
       path: "."
       ref: development
-      resolved-ref: "68e3941f9904c0604d8e083c76563035732f7a3b"
+      resolved-ref: "0280b8af7bc38857ce2a5ede912a278165c988f5"
       url: "https://github.com/GeeksJo/gameKit_package_flutter.git"
     source: git
     version: "0.1.0-dev"
