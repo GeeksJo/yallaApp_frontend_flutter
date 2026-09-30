@@ -1,7 +1,10 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:game_kit/game_kit.dart';
 import 'package:provider/provider.dart';
 import 'app.dart';
 import 'data/questions.dart';
+import 'services/firebase_service.dart';
 import 'providers/coin_provider.dart';
 import 'providers/game_provider.dart';
 import 'providers/game_settings_provider.dart';
@@ -11,6 +14,20 @@ import 'services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Before GameKit: the ads kill switch is read out of Remote Config while
+  // building the kit's AdsConfig, so Firebase has to be up first. This never
+  // throws - see FirebaseService.initialize.
+  await FirebaseService.instance.initialize();
+
+  // Flutter will not accept a background-handler registration from inside
+  // GameKit.initialize; it has to happen here in main, before runApp. Guarded
+  // because it needs a live [DEFAULT] Firebase app.
+  if (FirebaseService.instance.isReady) {
+    FirebaseMessaging.onBackgroundMessage(
+      gameKitFirebaseMessagingBackgroundHandler,
+    );
+  }
 
   final storage = StorageService();
   await storage.init();

@@ -6,6 +6,12 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Host [DEFAULT] Firebase. Needs android/app/google-services.json; until
+    // that file is added the Android build fails with "File
+    // google-services.json is missing". That is deliberate - a Firebase that
+    // configured itself silently would mean no kill switch and no push, with
+    // nothing on screen to notice.
+    id("com.google.gms.google-services")
 }
 
 val keystorePropertiesFile = rootProject.file("key.properties")

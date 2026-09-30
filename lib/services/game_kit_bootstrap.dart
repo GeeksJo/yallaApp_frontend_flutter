@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/config/level_play_ids.dart';
 import '../theme/app_theme.dart';
 import 'app_navigator.dart';
+import 'firebase_service.dart';
 import 'game_kit_products.dart';
 import 'storage_service.dart';
 
@@ -52,6 +53,16 @@ Future<void> initializeGameKit(StorageService storage) async {
     GameKitConfig(
       locale: persistedLocale,
       crossPromoSheetSeedColor: AppColors.primary,
+      // The kit's own named `game_kit` Firebase app: shared Remote Config
+      // (interstitial cooldown, launch grace, support email) plus More Games
+      // analytics. Its options are packaged inside the kit, so this needs no
+      // host config file. Separate from the host [DEFAULT] app that
+      // FirebaseService brings up for the kill switch and push.
+      firebase: GameKitFirebaseConfig.builtIn(),
+      // Lets the kit read Remote Config through this app. Without it the kit
+      // falls back to its compiled defaults and console values are ignored -
+      // the gap Sawaleef also had.
+      remoteConfig: const YallaRemoteConfigAdapter(),
       settingsUi: GameKitSettingsUiConfig(
         seedColor: AppColors.primary,
         // Localized by the persisted locale rather than read from the
@@ -107,6 +118,15 @@ Future<void> initializeGameKit(StorageService storage) async {
         ),
         interstitialMaxPerSession: 8,
         interstitialCooldownSeconds: 40,
+        // Handed to the kit rather than checked at each call site, so a
+        // switched-off build still reaches the kit's *capped* free grant
+        // instead of leaving the free-coins button dead. Reads Remote Config
+        // on every call, so a console publish takes effect without a release.
+        //
+        // This app had no Remote Config at all until now, which meant no way
+        // to turn ads off without shipping.
+        adsEnabled: () => FirebaseService.instance.resolveAdsEnabled(),
+        gatherUmpConsent: FirebaseService.instance.resolveAdsEnabled(),
       ),
       // [minLevel] is compared to a *cumulative* success count (see
       // [StorageService.incrementRatingSuccessCount]), not in-game round index.
@@ -114,6 +134,11 @@ Future<void> initializeGameKit(StorageService storage) async {
       // (default 2 would require a second cold start before any prompt).
       rating: const RatingConfig(minSession: 1),
       notifications: const NotificationsConfig(
+        // Remote campaigns from the Firebase console. Receiver only: one topic
+        // (all_users), title and body from the console, no data payloads. The
+        // kit joins the topic after the same permission gate as local
+        // reminders, not on first launch.
+        enableFcm: true,
         days: [DateTime.monday, DateTime.wednesday, DateTime.friday],
         hour: 18,
         androidChannelId: 'yalla_reminders',

@@ -290,7 +290,7 @@ packages:
     source: hosted
     version: "0.6.1+13"
   firebase_core:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_core
       sha256: "5fbbaa2aeb08a52feee559f92a62f5a6b04c9bdff81c8f608636771cf0d7b680"
@@ -314,7 +314,7 @@ packages:
     source: hosted
     version: "3.12.0"
   firebase_messaging:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_messaging
       sha256: "47a8142a0b897783103b01018ad69f123b819b0120483847bde30d1b2fa89b36"
@@ -338,7 +338,7 @@ packages:
     source: hosted
     version: "4.2.5"
   firebase_remote_config:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_remote_config
       sha256: fa518445638fa3903e359ac544bd3243e72ada025728c8dbfa4b28ae939e8b38
@@ -458,7 +458,7 @@ packages:
     description:
       path: "."
       ref: development
-      resolved-ref: "2375671e245275df7a57cbe70d5e006cd6f6add9"
+      resolved-ref: "68e3941f9904c0604d8e083c76563035732f7a3b"
       url: "https://github.com/GeeksJo/gameKit_package_flutter.git"
     source: git
     version: "0.1.0-dev"
