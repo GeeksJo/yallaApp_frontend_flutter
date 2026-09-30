@@ -1,59 +1,65 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../constants/admob_unit_ids.dart';
+import '../core/config/level_play_ids.dart';
 import '../theme/app_theme.dart';
 import 'app_navigator.dart';
 import 'game_kit_products.dart';
 import 'storage_service.dart';
 
-/// Call sites for `game_kit` in this app:
+// Call sites for `game_kit` in this app:
+//
+// - [GameKit.ads.levelCompleted] - between rounds in [QuestionScreen] and at
+//   end of match on [ScoreboardScreen] (`failed: true` skips cadence on timeout).
+// - [GameKit.ads.adClosed] - [GameKitAdBridge] after each interstitial; [presentOnAbandonHome].
+// - [GameKit.ads.requestAdGrant] - free-coins chain in [LockedCategorySheet]
+//   (via [CoinProvider.watchAdForCoins]).
+// - [GameKit.notifications.markPlayedToday] - first frame [QuestionScreen].
+// - [GameKit.notifications.initialize] - inside [GameKit.initialize] on cold start;
+//   [refreshGameKitAfterResume] calls it again on app resume ([YallaApp] lifecycle).
+// - [GameKit.notifications.onFirstDailyCompletion] - [ScoreboardScreen] first frame.
+// - [GameKit.rating.levelSucceeded] - after each correct answer [QuestionScreen]
+//   with cumulative [StorageService.incrementRatingSuccessCount] (not in-game round).
+// - [GameKit.iap] - purchases / restore / prices in [SettingsScreen] & [QuestionScreen].
+// - [GameKit.crossPromo] - catalog sheet; badge on home settings.
+// - [GameKit.share] - settings share row.
+// - [GameKit.haptics] / [GameKit.sounds] - gameplay feedback (countdown, answers, UI).
+
+/// About-card blurb for the kit settings screen, per locale.
 ///
-/// - [GameKit.ads.levelCompleted] — between rounds in [QuestionScreen] and at
-///   end of match on [ScoreboardScreen] (`failed: true` skips cadence on timeout).
-/// - [GameKit.ads.adClosed] — [GameKitAdBridge] after each interstitial; [presentOnAbandonHome].
-/// - [GameKit.ads.canShowRewarded] — before rewarded in [LockedCategorySheet].
-/// - [GameKit.notifications.markPlayedToday] — first frame [QuestionScreen].
-/// - [GameKit.notifications.initialize] — inside [GameKit.initialize] on cold start;
-///   [refreshGameKitAfterResume] calls it again on app resume ([YallaApp] lifecycle).
-/// - [GameKit.notifications.onFirstDailyCompletion] — [ScoreboardScreen] first frame.
-/// - [GameKit.rating.levelSucceeded] — after each correct answer [QuestionScreen]
-///   with cumulative [StorageService.incrementRatingSuccessCount] (not in-game round).
-/// - [GameKit.iap] — purchases / restore / prices in [SettingsScreen] & [QuestionScreen].
-/// - [GameKit.crossPromo] — catalog sheet; badge on home settings.
-/// - [GameKit.share] — settings share row.
-/// - [GameKit.haptics] / [GameKit.sounds] — gameplay feedback (countdown, answers, UI).
+/// Plain constants rather than ARB lookups because [initializeGameKit] runs
+/// before the localization delegate has loaded.
+const String _aboutDescriptionAr =
+    'يلا: تحدي الثلاثين ثانية. اذكر ثلاثة أشياء قبل ما ينتهي الوقت، '
+    'لعبة سريعة للجلسات مع الأصدقاء والعائلة.';
+
+const String _aboutDescriptionEn =
+    'Yalla: the 30-second challenge. Name three things before time runs out - '
+    'a fast party game for friends and family.';
+
 Future<void> initializeGameKit(StorageService storage) async {
   final persistedLocale = Locale(storage.getLocale());
 
-  String env(String key) => (dotenv.env[key] ?? '').trim();
-  String envProdUnit(
-    String key, {
-    required String releaseFallback,
-    required String debugFallback,
-  }) {
-    final v = env(key);
-    if (v.isNotEmpty) return v;
-    return kReleaseMode ? releaseFallback : debugFallback;
-  }
-
-  final rewardedAndroid = env('ADMOB_ANDROID_REWARDED_ID');
-  final rewardedIos = env('ADMOB_IOS_REWARDED_ID');
-  final rewardedAdsEnabled =
-      rewardedAndroid.isNotEmpty && rewardedIos.isNotEmpty;
-
+  // LevelPlay ids are compiled in, so rewarded is always configured. The old
+  // `.env` plumbing meant rewarded silently never loaded whenever `.env` was
+  // absent - which it was in every checkout, so the whole rewarded path was
+  // dead code.
   await GameKit.initialize(
     GameKitConfig(
       locale: persistedLocale,
       crossPromoSheetSeedColor: AppColors.primary,
       settingsUi: GameKitSettingsUiConfig(
         seedColor: AppColors.primary,
+        // Localized by the persisted locale rather than read from the
+        // generated ARB: this runs before the localization delegate loads.
+        // Call GameKit.updateSettingsUi on a locale change to swap it.
+        aboutDescription: persistedLocale.languageCode == 'ar'
+            ? _aboutDescriptionAr
+            : _aboutDescriptionEn,
         iconColor: AppColors.primary,
         fontFamily: AppFonts.family,
         sectionCardAppearance: GameKitSectionCardAppearance.frosted,
@@ -82,34 +88,25 @@ Future<void> initializeGameKit(StorageService storage) async {
       ),
       ads: AdsConfig(
         interstitialEveryNLevels: 2,
-        adMobEnvironment: AdMobUnitEnvironment.prod,
-        prodAdMobUnitIds: AdMobProdUnitIds(
-          interstitialAndroid: envProdUnit(
-            'ADMOB_ANDROID_INTERSTITIAL_ID',
-            releaseFallback: AdMobUnitIds.interstitialAndroid,
-            debugFallback: AdMobGoogleSampleUnitIds.interstitialAndroid,
-          ),
-          interstitialIos: envProdUnit(
-            'ADMOB_IOS_INTERSTITIAL_ID',
-            releaseFallback: AdMobUnitIds.interstitialIos,
-            debugFallback: AdMobGoogleSampleUnitIds.interstitialIos,
-          ),
-          bannerAndroid: envProdUnit(
-            'ADMOB_ANDROID_BANNER_ID',
-            releaseFallback: AdMobUnitIds.bannerAndroid,
-            debugFallback: AdMobGoogleSampleUnitIds.bannerAndroid,
-          ),
-          bannerIos: envProdUnit(
-            'ADMOB_IOS_BANNER_ID',
-            releaseFallback: AdMobUnitIds.bannerIos,
-            debugFallback: AdMobGoogleSampleUnitIds.bannerIos,
-          ),
-          rewardedAndroid: rewardedAndroid,
-          rewardedIos: rewardedIos,
+        // Always the real ids. LevelPlay has no always-fill demo units the way
+        // AdMob did - Unity's demo app key returns no fill - so a "test"
+        // environment here would mean no ads at all in debug. Safe testing
+        // comes from Unity dashboard test mode plus registered test devices.
+        adEnvironment: AdUnitEnvironment.prod,
+        prodLevelPlayUnitIds: LevelPlayProdUnitIds(
+          // [LevelPlayIds] already resolves per platform, so the same value
+          // goes in both slots and the kit's own pick is a no-op here.
+          appKeyAndroid: LevelPlayIds.appKey,
+          appKeyIos: LevelPlayIds.appKey,
+          interstitialAndroid: LevelPlayIds.interstitial,
+          interstitialIos: LevelPlayIds.interstitial,
+          bannerAndroid: LevelPlayIds.banner,
+          bannerIos: LevelPlayIds.banner,
+          rewardedAndroid: LevelPlayIds.rewarded,
+          rewardedIos: LevelPlayIds.rewarded,
         ),
         interstitialMaxPerSession: 8,
         interstitialCooldownSeconds: 40,
-        rewardedAdsEnabled: rewardedAdsEnabled,
       ),
       // [minLevel] is compared to a *cumulative* success count (see
       // [StorageService.incrementRatingSuccessCount]), not in-game round index.
@@ -128,6 +125,9 @@ Future<void> initializeGameKit(StorageService storage) async {
       share: const ShareConfig(
         appName: 'Yalla! - 5 seconds',
         androidPackageName: 'com.majoon.yalla',
+        // Was missing, so iOS share links had no App Store target and the
+        // promo-ads request had no iOS identity to exclude itself by.
+        iosAppId: '6763862332',
       ),
       storage: const StorageConfig(
         backend: GameKitStoreBackend.sharedPreferences,
@@ -140,11 +140,9 @@ Future<void> initializeGameKit(StorageService storage) async {
 
   await _migrateAudioHapticsPreferences(storage);
 
-  await GameKit.ads.initializeMobileAds();
-  unawaited(GameKit.ads.loadInterstitial());
-  if (rewardedAdsEnabled) {
-    unawaited(GameKit.ads.loadRewarded());
-  }
+  // `preloadAds` brings the network up and warms both formats, so there is no
+  // separate init call and no rewarded-enabled branch to get wrong.
+  unawaited(GameKit.ads.preloadAds());
 
   await _migrateLegacyDonationTotal(storage);
   await _prefetchIapCatalog();

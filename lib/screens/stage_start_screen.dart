@@ -14,7 +14,7 @@ import 'home_screen.dart';
 import 'question_screen.dart';
 
 /// Full-screen countdown after categories + Start (same layout for 1v1 and FFA;
-/// FFA uses 3s / 3–2–1, 1v1 uses 2s / 2–1).
+/// FFA uses 3s / 3-2-1, 1v1 uses 2s / 2-1).
 /// Mid-game FFA: [PassScreen] → [QuestionScreen] directly.
 class StageStartScreen extends StatefulWidget {
   const StageStartScreen({super.key});

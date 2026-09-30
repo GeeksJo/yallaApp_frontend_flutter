@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'app.dart';
 import 'data/questions.dart';
@@ -12,12 +11,6 @@ import 'services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  try {
-    await dotenv.load(fileName: '.env');
-  } catch (_) {
-    // Ad unit IDs fall back to [AdMobUnitIds] in release builds.
-  }
 
   final storage = StorageService();
   await storage.init();

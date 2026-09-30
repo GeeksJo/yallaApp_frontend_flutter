@@ -31,6 +31,20 @@ target 'Runner' do
   use_frameworks!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # LevelPlay network adapters: the iOS half of the block in
+  # android/app/build.gradle.kts. The unity_levelplay_mediation podspec pulls
+  # IronSourceSDK (the mediation *core*) and nothing else, so every network
+  # adapter is a separate pod here just as it is on Android.
+  #
+  # A missing adapter fails SILENTLY - the SDK initialises and no ad ever
+  # loads. See game_kit docs/LEVELPLAY_SETUP.md.
+  #
+  # Unpinned on purpose: the adapter has to match the IronSourceSDK version
+  # the plugin pulls, and CocoaPods resolves that pairing more reliably than a
+  # hand-picked number. On iOS the adapter brings the Unity Ads SDK with it.
+  pod 'IronSourceUnityAdsAdapter'
+
   target 'RunnerTests' do
     inherit! :search_paths
   end

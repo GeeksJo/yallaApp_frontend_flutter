@@ -419,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @drawSubtitle.
   ///
   /// In ar, this message translates to:
-  /// **'نفس النقاط — لا يوجد فائز'**
+  /// **'نفس النقاط - لا يوجد فائز'**
   String get drawSubtitle;
 
   /// No description provided for @winner.
@@ -443,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @howToPlayStep3.
   ///
   /// In ar, this message translates to:
-  /// **'سيظهر لك سؤال — أجب قبل انتهاء العداد'**
+  /// **'سيظهر لك سؤال - أجب قبل انتهاء العداد'**
   String get howToPlayStep3;
 
   /// No description provided for @howToPlayStep4.
@@ -545,19 +545,19 @@ abstract class AppLocalizations {
   /// No description provided for @supportSmall.
   ///
   /// In ar, this message translates to:
-  /// **'دعم — صغير'**
+  /// **'دعم - صغير'**
   String get supportSmall;
 
   /// No description provided for @supportMedium.
   ///
   /// In ar, this message translates to:
-  /// **'دعم — متوسط'**
+  /// **'دعم - متوسط'**
   String get supportMedium;
 
   /// No description provided for @supportLarge.
   ///
   /// In ar, this message translates to:
-  /// **'دعم — كبير'**
+  /// **'دعم - كبير'**
   String get supportLarge;
 
   /// No description provided for @purchaseThanks.
@@ -671,7 +671,7 @@ abstract class AppLocalizations {
   /// No description provided for @appInfoLine.
   ///
   /// In ar, this message translates to:
-  /// **'يلا! - ٥ ثوانٍ — لعبة حفلات'**
+  /// **'يلا! - ٥ ثوانٍ - لعبة حفلات'**
   String get appInfoLine;
 
   /// No description provided for @removeAdsSubtitle.

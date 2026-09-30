@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
     final isTablet = ResponsiveLayout.isTablet(context);
     final split = _useLandscapeSplit(context);
     final screenW = MediaQuery.sizeOf(context).width;
-    // Tablet portrait: avoid stacking global tablet inset + narrow maxWidth — that
+    // Tablet portrait: avoid stacking global tablet inset + narrow maxWidth - that
     // letterboxes the UI. Use a small outer gutter and let content span nearly full width.
     final outerHorizontal = !isTablet ? 16.0 : (split ? 20.0 : 12.0);
     final maxW = !isTablet

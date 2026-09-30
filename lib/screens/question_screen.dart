@@ -164,7 +164,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     _timerController.forward(from: 0);
   }
 
-  /// 1v1: flip handoff or first question after [StageStartScreen] — no 2→1 intro.
+  /// 1v1: flip handoff or first question after [StageStartScreen] - no 2→1 intro.
   Future<void> _start1v1AnswerPhase({bool hideQuestionFirst = true}) async {
     if (!mounted || _answered) return;
     GameKitAdBridge.preloadInterstitial();
@@ -1048,7 +1048,7 @@ class _QuestionScreenState extends State<QuestionScreen>
           Padding(
             padding: EdgeInsets.symmetric(horizontal: isTablet ? 14 : 10),
             child: Text(
-              '${p1.score}  —  ${p2.score}',
+              '${p1.score}  -  ${p2.score}',
               style: TextStyle(
                 fontFamily: AppFonts.family,
                 color: AppColors.textPrimary,

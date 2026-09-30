@@ -13,10 +13,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   provider: ^6.1.5+1
   shared_preferences: ^2.5.5
-  google_mobile_ads: ^7.0.0
   intl: ^0.20.2
   url_launcher: ^6.3.1
-  flutter_dotenv: ^5.2.1
   game_kit:
     git:
       url: https://github.com/GeeksJo/gameKit_package_flutter.git
@@ -35,7 +33,6 @@ flutter:
     - assets/content/
     - assets/images/
     - assets/images/categories/
-    - .env
   fonts:
     - family: ElMessiri
       fonts:

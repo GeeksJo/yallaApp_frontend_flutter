@@ -169,7 +169,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get draw => 'تعادل';
 
   @override
-  String get drawSubtitle => 'نفس النقاط — لا يوجد فائز';
+  String get drawSubtitle => 'نفس النقاط - لا يوجد فائز';
 
   @override
   String get winner => 'الفائز';
@@ -181,7 +181,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get howToPlayStep2 => 'اختر الفئات وعدد الجولات';
 
   @override
-  String get howToPlayStep3 => 'سيظهر لك سؤال — أجب قبل انتهاء العداد';
+  String get howToPlayStep3 => 'سيظهر لك سؤال - أجب قبل انتهاء العداد';
 
   @override
   String get howToPlayStep4 => 'أجب بصوت عالٍ واضغط الزر الأحمر إذا أجبت';
@@ -232,13 +232,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get rateApp => 'قيّم التطبيق';
 
   @override
-  String get supportSmall => 'دعم — صغير';
+  String get supportSmall => 'دعم - صغير';
 
   @override
-  String get supportMedium => 'دعم — متوسط';
+  String get supportMedium => 'دعم - متوسط';
 
   @override
-  String get supportLarge => 'دعم — كبير';
+  String get supportLarge => 'دعم - كبير';
 
   @override
   String get purchaseThanks => 'شكراً لدعمك!';
@@ -297,7 +297,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sectionContact => 'تواصل';
 
   @override
-  String get appInfoLine => 'يلا! - ٥ ثوانٍ — لعبة حفلات';
+  String get appInfoLine => 'يلا! - ٥ ثوانٍ - لعبة حفلات';
 
   @override
   String get removeAdsSubtitle =>

@@ -56,34 +56,24 @@ class CoinProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> watchAdForCoins() async {
-    if (!GameKit.ads.canShowRewarded(RewardedReason.hint)) {
-      return false;
+  /// Runs the kit's grant chain for free coins and returns the outcome.
+  ///
+  /// Was a hand-rolled load-then-show that returned a bare `bool`, so every
+  /// failure looked identical: no network, no fill, and the player closing the
+  /// video all produced `false` and - because the caller discarded it - no
+  /// message at all. The chain handles the tiers, the offline gate and the
+  /// capped free grant; the outcome tells the caller which message to show.
+  Future<AdGrantOutcome> watchAdForCoins() async {
+    unawaited(GameKit.ads.preloadAds());
+    final AdGrantOutcome outcome = await GameKit.ads.requestAdGrant(
+      placement: 'free_coins',
+      // Coins are spendable on anything, so they draw on the currency window.
+      cooldownGroup: AdGrantCooldownGroup.currency,
+    );
+    if (outcome.isGranted) {
+      await addCoins(adReward);
     }
-
-    if (!GameKit.ads.isRewardedReady) {
-      try {
-        await GameKit.ads
-            .loadRewarded()
-            .timeout(_rewardedLoadCap, onTimeout: () {});
-      } catch (_) {}
-    }
-
-    if (!GameKit.ads.isRewardedReady) {
-      return false;
-    }
-
-    try {
-      final rewarded = await GameKit.ads
-          .showRewarded()
-          .timeout(_rewardedShowCap, onTimeout: () => false);
-      if (rewarded) {
-        await addCoins(adReward);
-      }
-      return rewarded;
-    } catch (_) {
-      return false;
-    }
+    return outcome;
   }
 
   bool get isAdReady =>

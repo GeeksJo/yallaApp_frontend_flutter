@@ -70,4 +70,15 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+    // LevelPlay network adapters. The unity_levelplay_mediation plugin ships
+    // only the mediation SDK core, and game_kit is a pure Dart package with no
+    // android/ of its own, so each host app declares the adapters it needs.
+    // The Unity Ads SDK is not pulled in transitively by the adapter.
+    //
+    // A missing adapter fails SILENTLY: the SDK initialises, the dashboard
+    // shows the instance live, and no ad ever loads. Grep logcat for
+    // "adapter was not loaded". See game_kit docs/LEVELPLAY_SETUP.md.
+    implementation("com.unity3d.ads-mediation:unityads-adapter:5.5.0")
+    implementation("com.unity3d.ads:unity-ads:4.16.6")
 }

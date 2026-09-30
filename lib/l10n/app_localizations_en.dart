@@ -172,7 +172,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get draw => 'Draw';
 
   @override
-  String get drawSubtitle => 'Same score — no winner';
+  String get drawSubtitle => 'Same score - no winner';
 
   @override
   String get winner => 'Winner';
@@ -185,7 +185,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get howToPlayStep3 =>
-      'You\'ll get a question — answer before the countdown ends';
+      'You\'ll get a question - answer before the countdown ends';
 
   @override
   String get howToPlayStep4 =>
@@ -238,13 +238,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rateApp => 'Rate app';
 
   @override
-  String get supportSmall => 'Support — small';
+  String get supportSmall => 'Support - small';
 
   @override
-  String get supportMedium => 'Support — medium';
+  String get supportMedium => 'Support - medium';
 
   @override
-  String get supportLarge => 'Support — large';
+  String get supportLarge => 'Support - large';
 
   @override
   String get purchaseThanks => 'Thank you for your support!';
@@ -303,7 +303,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionContact => 'Contact';
 
   @override
-  String get appInfoLine => 'Yalla! - 5 seconds — party game';
+  String get appInfoLine => 'Yalla! - 5 seconds - party game';
 
   @override
   String get removeAdsSubtitle =>

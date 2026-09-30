@@ -102,22 +102,28 @@ class LockedCategorySheet extends StatelessWidget {
             context,
             isTablet: isTablet,
             icon: Icons.play_circle_fill,
-            label: '${l10n.watchAd} — ${l10n.earnCoins}',
+            label: '${l10n.watchAd} - ${l10n.earnCoins}',
             cost: '+${CoinProvider.adReward}',
-            enabled: coinProvider.isAdReady,
+            // Always tappable now: the chain decides what to do, and a
+            // readiness gate here just meant a permanently dead button
+            // whenever inventory had not warmed yet.
+            enabled: true,
             isAd: true,
             onTap: () async {
-              if (!GameKit.ads.canShowRewarded(RewardedReason.hint)) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.rewardedUnavailable),
-                    ),
-                  );
-                }
-                return;
+              final AdGrantOutcome outcome =
+                  await coinProvider.watchAdForCoins();
+              if (!context.mounted) return;
+              // The kit owns the copy, so each of the three non-granting
+              // outcomes says something true. The old code discarded the
+              // result entirely, so a failed watch was completely silent.
+              final AdGrantNotice? notice = outcome.notice(
+                GameKitLocalizations.of(context),
+              );
+              if (notice != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(notice.message)),
+                );
               }
-              await coinProvider.watchAdForCoins();
             },
           ),
           SizedBox(height: isTablet ? 20 : 16),

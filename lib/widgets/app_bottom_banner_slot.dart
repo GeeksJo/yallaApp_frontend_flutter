@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:game_kit/game_kit.dart' hide GameKitBannerSlot;
+import 'package:game_kit/game_kit.dart';
 
-import 'game_kit_banner_slot.dart';
 
 /// Shared bottom banner slot for menu, setup, and gameplay screens.
 ///
