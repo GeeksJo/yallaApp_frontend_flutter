@@ -1,23 +1,24 @@
 # Firebase setup
 
-All the code is wired. Two files are missing, and they can only come from the
-Firebase console.
+Both config files are in place, from Firebase project `yalla-f87b1`.
 
-## What to add
+## Where they live
 
 | File | Where it goes |
 | --- | --- |
 | `google-services.json` | `android/app/google-services.json` |
-| `GoogleService-Info.plist` | `ios/Runner/GoogleService-Info.plist` (add to the Runner target in Xcode) |
+| `GoogleService-Info.plist` | `ios/Runner/GoogleService-Info.plist`, in the Runner target's Resources build phase (`project.pbxproj`) |
 
-Both come from a Firebase project with an Android app registered as
-`com.majoon.yalla` and an iOS app registered with the matching bundle id.
+Both are from a Firebase project with an Android app registered as
+`com.majoon.yalla` and an iOS app registered with the matching bundle id. To
+replace them (new project, regenerated keys), drop the new files over the old
+ones; the Xcode reference is by path, so no project edit is needed.
 
 Nothing else is needed: `FirebaseService` calls `Firebase.initializeApp()` with
 no options, which reads these native files directly, so there is no generated
 `firebase_options.dart` to keep in sync.
 
-## What works before they arrive
+## What works if they are ever missing
 
 The app builds and runs on iOS, and every Firebase-dependent path degrades:
 
@@ -43,9 +44,13 @@ itself silently would mean no kill switch and no push, with nothing to notice.
 | `show_app_moved` | Boolean | `false` | App-moved gate |
 | `new_android_store_url` / `new_ios_store_url` | String | empty | App-moved links |
 
-`interstitial_cooldown_seconds` and `interstitial_startup_grace_seconds` are
-read by `game_kit` from **its own** `game_kit` Firebase project, not this one.
-See `gameKit_package_flutter/docs/FIREBASE.md`.
+The kit's ads tunables (`interstitial_cooldown_seconds`,
+`interstitial_startup_grace_seconds`, `free_grant_cooldown_minutes`,
+`rewarded_wait_timeout_seconds`, `levelplay_app_key_android` / `_ios`) are
+read **this console first, then the kit's own `game_kit` project, then the
+compiled `AdsConfig` default** - the kit layers `YallaRemoteConfigAdapter` over
+its project. Set a key here only to override the fleet value. See
+`gameKit_package_flutter/docs/ADS.md`.
 
 ## Messaging
 

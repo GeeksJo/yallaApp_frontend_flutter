@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "121059254606",
+    "project_id": "yalla-f87b1",
+    "storage_bucket": "yalla-f87b1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:121059254606:android:3d4d3d31e79f817d213e1f",
+        "android_client_info": {
+          "package_name": "com.majoon.yalla"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_Hx4V_ooQFg2CHNRfTIikHMadDR-AerM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
