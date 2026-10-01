@@ -65,11 +65,18 @@ class CoinProvider extends ChangeNotifier {
   /// capped free grant; the outcome tells the caller which message to show.
   Future<AdGrantOutcome> watchAdForCoins() async {
     unawaited(GameKit.ads.preloadAds());
-    final AdGrantOutcome outcome = await GameKit.ads.requestAdGrant(
-      placement: 'free_coins',
-      // Coins are spendable on anything, so they draw on the currency window.
-      cooldownGroup: AdGrantCooldownGroup.currency,
-    );
+    AdGrantOutcome outcome;
+    try {
+      outcome = await GameKit.ads.requestAdGrant(
+        placement: 'free_coins',
+        // Coins are spendable on anything, so they draw on the currency window.
+        cooldownGroup: AdGrantCooldownGroup.currency,
+      );
+    } catch (_) {
+      // A crash inside the chain must not become free coins, and must still
+      // leave the caller an outcome to explain.
+      outcome = AdGrantOutcome.offline;
+    }
     if (outcome.isGranted) {
       await addCoins(adReward);
     }
