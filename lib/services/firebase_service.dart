@@ -89,12 +89,12 @@ class FirebaseService {
       _ready = true;
 
       await rc.fetchAndActivate();
-      adsEnabled.value = resolveAdsEnabled();
+      _applyAdsEnabled();
 
       // A console publish mid-session updates the switch without a relaunch.
       rc.onConfigUpdated.listen((_) async {
         await rc.activate();
-        adsEnabled.value = resolveAdsEnabled();
+        _applyAdsEnabled();
       });
     } on Object catch (error) {
       // Almost always "no google-services.json yet". Ads stay enabled.
@@ -103,6 +103,18 @@ class FirebaseService {
       // land, and a stack trace here reads like a crash in test output.
       debugPrint('Firebase not configured, running without it: $error');
       _ready = false;
+    }
+  }
+
+  /// Publishes a newly resolved kill-switch value to the app and the kit.
+  ///
+  /// Interstitials re-read the switch at show time, but the kit's banner slot
+  /// hangs off a ValueNotifier and adsEnabled reaches it as a closure, which
+  /// cannot be listened to - so the kit is told to look again.
+  void _applyAdsEnabled() {
+    adsEnabled.value = resolveAdsEnabled();
+    if (GameKit.isInitialized) {
+      GameKit.ads.refreshAdsEnabled();
     }
   }
 
