@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:game_kit/game_kit.dart';
 import 'package:yalla/l10n/app_localizations.dart';
+import 'package:yalla/l10n/yalla_game_kit_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/locale_provider.dart';
@@ -53,7 +53,7 @@ class _YallaAppState extends State<YallaApp> with WidgetsBindingObserver {
       supportedLocales: const [Locale('ar'), Locale('en')],
       localizationsDelegates: const [
         AppLocalizations.delegate,
-        GameKitLocalizations.delegate,
+        YallaGameKitLocalizationsDelegate(),
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

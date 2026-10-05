@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
@@ -19,7 +20,9 @@ import 'storage_service.dart';
 // - [GameKit.notifications.markPlayedToday] - first frame [QuestionScreen].
 // - [GameKit.notifications.initialize] - inside [GameKit.initialize] on cold start;
 //   [refreshGameKitAfterResume] calls it again on app resume ([YallaApp] lifecycle).
-// - [GameKit.notifications.onFirstDailyCompletion] - [ScoreboardScreen] first frame.
+// - [GameKit.notifications.onFirstDailyCompletion] - [ScoreboardScreen] after
+//   a finished match, including Remove Ads. Permission is requested there, not
+//   on launch.
 // - [GameKitRatingPrompt.presentIfEligible] - after a successful round's
 //   interstitial, or on [ScoreboardScreen] after its interstitial. The level
 //   is the cumulative correct-answer count, not the in-game round.
@@ -50,6 +53,31 @@ const yallaHapticsConfig = HapticsConfig();
 /// kit's own lifetime, dismissal, and post-ad limits.
 const yallaRatingConfig = RatingConfig();
 
+/// Android package, iOS bundle, and the More Games exclusion id.
+const yallaStoreId = 'com.majoon.yalla';
+
+const yallaIosAppId = '6763862332';
+
+/// Share sheet copy uses [YallaGameKitLocalizationsDelegate]. [analyticsGameName]
+/// is the stable host identity on `share_tapped`.
+const yallaShareConfig = ShareConfig(
+  appName: 'Yalla! - 5 seconds',
+  androidPackageName: yallaStoreId,
+  iosAppId: yallaIosAppId,
+  analyticsGameName: 'yalla',
+);
+
+/// Mon/Wed/Fri at 18:00 local. The 48-hour install delay and the stop after
+/// three ignored reminders are the kit defaults. Title, body, and the Android
+/// channel label stay unset so they follow the kit's Arabic/English strings
+/// (the title falls back to the share app name).
+const yallaNotificationsConfig = NotificationsConfig(
+  days: [DateTime.monday, DateTime.wednesday, DateTime.friday],
+  hour: 18,
+  androidChannelId: 'yalla_reminders',
+  enableFcm: true,
+);
+
 String _aboutDescriptionFor(Locale locale) =>
     locale.languageCode == 'ar' ? _aboutDescriptionAr : _aboutDescriptionEn;
 
@@ -77,6 +105,7 @@ GameKitSettingsUiConfig buildYallaGameKitSettingsUiConfig(Locale locale) {
 void updateGameKitPresentationLocale(Locale locale) {
   GameKit.updateLocale(locale);
   GameKit.updateSettingsUi(buildYallaGameKitSettingsUiConfig(locale));
+  unawaited(refreshGameKitReminders());
 }
 
 Future<void> initializeGameKit(StorageService storage) async {
@@ -159,33 +188,16 @@ Future<void> initializeGameKit(StorageService storage) async {
         showPromoInterstitial: true,
       ),
       rating: yallaRatingConfig,
-      notifications: const NotificationsConfig(
-        // Remote campaigns from the Firebase console. Receiver only: one topic
-        // (all_users), title and body from the console, no data payloads. The
-        // kit joins the topic after the same permission gate as local
-        // reminders, not on first launch.
-        enableFcm: true,
-        days: [DateTime.monday, DateTime.wednesday, DateTime.friday],
-        hour: 18,
-        androidChannelId: 'yalla_reminders',
-        androidChannelName: 'Yalla',
-        androidChannelDescription: 'Reminders to play',
-        notificationTitle: 'Yalla',
-        notificationBody: 'Play a quick round today.',
-      ),
-      share: const ShareConfig(
-        appName: 'Yalla! - 5 seconds',
-        androidPackageName: 'com.majoon.yalla',
-        // Was missing, so iOS share links had no App Store target and the
-        // promo-ads request had no iOS identity to exclude itself by.
-        iosAppId: '6763862332',
-      ),
+      notifications: yallaNotificationsConfig,
+      share: yallaShareConfig,
       storage: const StorageConfig(
         backend: GameKitStoreBackend.sharedPreferences,
       ),
       sound: yallaSoundConfig,
       haptics: yallaHapticsConfig,
-      crossPromoAppIdentifier: 'com.majoon.yalla',
+      crossPromoAppIdentifier: Platform.isAndroid
+          ? yallaStoreId
+          : yallaIosAppId,
     ),
   );
 
@@ -234,10 +246,27 @@ Future<void> _prefetchIapCatalog() async {
   } catch (_) {}
 }
 
-Future<void> refreshGameKitAfterResume() async {
+Future<void> refreshGameKitReminders() async {
+  if (!GameKit.isInitialized) return;
   try {
     await GameKit.notifications.initialize();
-  } catch (_) {}
+  } catch (_) {
+    // Scheduling is best-effort. A plugin failure must not block locale or resume.
+  }
+}
+
+Future<void> refreshGameKitCatalog() async {
+  if (!GameKit.isInitialized) return;
+  try {
+    await GameKit.crossPromo.softRefreshIfDue();
+  } catch (_) {
+    // A failed refresh keeps the last cached catalog.
+  }
+}
+
+Future<void> refreshGameKitAfterResume() async {
+  await refreshGameKitReminders();
+  await refreshGameKitCatalog();
   GameKitAdBridge.preloadAds();
 }
 

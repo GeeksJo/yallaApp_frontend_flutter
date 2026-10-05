@@ -48,19 +48,19 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       GameFeedback.completion();
+      try {
+        await GameKit.notifications.onFirstDailyCompletion();
+      } catch (_) {
+        // A missing Firebase app or a plugin failure must not block results.
+      }
+      if (!mounted) return;
       if (!GameKit.iap.adsRemoved.value) {
         setState(() => _adShowing = true);
         try {
-          await GameKit.notifications.onFirstDailyCompletion().timeout(
-            const Duration(seconds: 6),
-            onTimeout: () {},
+          await GameKitAdBridge.presentAfterLevel(
+            context: context,
+            failed: widget.adsRoundFailed,
           );
-          if (mounted) {
-            await GameKitAdBridge.presentAfterLevel(
-              context: context,
-              failed: widget.adsRoundFailed,
-            );
-          }
         } finally {
           if (mounted) setState(() => _adShowing = false);
         }

@@ -502,7 +502,12 @@ class _QuestionScreenState extends State<QuestionScreen>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildCrossPromoButton(isTablet: isTablet, onTap: onCrossPromo),
+              _MoreGamesBadge(
+                child: _buildCrossPromoButton(
+                  isTablet: isTablet,
+                  onTap: onCrossPromo,
+                ),
+              ),
               Expanded(
                 child: Center(
                   child: _buildCountdownBlock(
@@ -1135,6 +1140,57 @@ class _QuestionScreenState extends State<QuestionScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MoreGamesBadge extends StatelessWidget {
+  const _MoreGamesBadge({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!GameKit.isInitialized) return child;
+    return StreamBuilder<bool>(
+      initialData: GameKit.crossPromo.hasNewGame,
+      stream: GameKit.crossPromo.hasNewGameChanges,
+      builder: (context, snapshot) {
+        final showBadge = snapshot.data ?? false;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            child,
+            if (showBadge)
+              const Positioned(top: -4, right: -2, child: _NewGamesMark()),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _NewGamesMark extends StatelessWidget {
+  const _NewGamesMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.coin,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Text(
+        'NEW',
+        style: TextStyle(
+          fontFamily: AppFonts.family,
+          color: AppColors.primaryDark,
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          height: 1,
+        ),
       ),
     );
   }

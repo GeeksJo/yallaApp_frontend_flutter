@@ -67,10 +67,23 @@ sent to the SDK.
 
 ## Messaging
 
+Local reminders are Monday, Wednesday, and Friday at 18:00 local. The kit
+waits 48 hours after install, skips a day the player already opened a round,
+and stops after three ignored reminders until the app is opened again.
+Reminder body and the Android channel name come from the kit's Arabic/English
+strings. Permission is requested from the results screen after a finished
+match, including Remove Ads, and is not requested on launch.
+
 `NotificationsConfig.enableFcm` is on. The kit is a receiver only: one topic
-(`all_users`), title and body from the console, no data payloads or custom
-routing. Devices join the topic after the same permission gate as local
-reminders, not on first launch.
+(`all_users`), title and body from the **host** Firebase console, no data
+payloads or custom routing. A tap is a normal app launch. Devices join the
+topic after the same permission gate as local reminders.
 
 The background handler is registered in `main()` before `runApp` — Flutter will
-not accept a registration from inside `GameKit.initialize`.
+not accept a registration from inside `GameKit.initialize`. It is skipped when
+the host `[DEFAULT]` Firebase app is missing, and play still starts.
+
+iOS has the Push entitlement (`Runner/Runner.entitlements`, `aps-environment`)
+and Background Modes → remote notifications. The APNs key itself is uploaded
+in the host Firebase project (`yalla-f87b1`), not in this repo. Android
+already declares `POST_NOTIFICATIONS`.
