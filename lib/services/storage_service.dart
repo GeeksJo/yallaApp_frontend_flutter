@@ -78,10 +78,11 @@ class StorageService {
 
   Future<void> clearDonationTotal() => _prefs.remove(_donationTotalKey);
 
-  /// Cumulative correct-answer count for [GameKit.rating.levelSucceeded] (1-based
-  /// “level” index). In-game [GameProvider.currentRound] is not suitable: it
-  /// only goes up to [GameProvider.totalRounds] per match, so it never reaches
-  /// [RatingConfig.minLevel] (e.g. 4) in short games.
+  /// Cumulative correct answers, used as the rating "level".
+  ///
+  /// In-game rounds reset every match, so a short match would never reach the
+  /// kit's minimum of four. The prompt itself is offered only at a successful
+  /// round or on the results screen.
   int get ratingSuccessCount => _prefs.getInt(_ratingSuccessCountKey) ?? 0;
 
   /// Returns the new total after incrementing (for passing to [GameKit.rating]).

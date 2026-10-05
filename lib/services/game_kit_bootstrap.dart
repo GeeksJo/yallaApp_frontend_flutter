@@ -20,8 +20,9 @@ import 'storage_service.dart';
 // - [GameKit.notifications.initialize] - inside [GameKit.initialize] on cold start;
 //   [refreshGameKitAfterResume] calls it again on app resume ([YallaApp] lifecycle).
 // - [GameKit.notifications.onFirstDailyCompletion] - [ScoreboardScreen] first frame.
-// - [GameKit.rating.levelSucceeded] - after each correct answer [QuestionScreen]
-//   with cumulative [StorageService.incrementRatingSuccessCount] (not in-game round).
+// - [GameKitRatingPrompt.presentIfEligible] - after a successful round's
+//   interstitial, or on [ScoreboardScreen] after its interstitial. The level
+//   is the cumulative correct-answer count, not the in-game round.
 // - [GameKit.iap] - purchases / restore / prices in [SettingsScreen] & [QuestionScreen].
 // - [GameKit.crossPromo] - catalog sheet; badge on home settings.
 // - [GameKit.share] - settings share row.
@@ -44,6 +45,10 @@ const yallaSoundConfig = SoundConfig(respectSilentMode: false);
 
 /// Vibration follows the kit preference. This config adds no extra gate.
 const yallaHapticsConfig = HapticsConfig();
+
+/// Kit rating policy: second session, four cumulative successes, and the
+/// kit's own lifetime, dismissal, and post-ad limits.
+const yallaRatingConfig = RatingConfig();
 
 String _aboutDescriptionFor(Locale locale) =>
     locale.languageCode == 'ar' ? _aboutDescriptionAr : _aboutDescriptionEn;
@@ -153,11 +158,7 @@ Future<void> initializeGameKit(StorageService storage) async {
         gatherUmpConsent: FirebaseService.instance.resolveAdsEnabled(),
         showPromoInterstitial: true,
       ),
-      // [minLevel] is compared to a *cumulative* success count (see
-      // [StorageService.incrementRatingSuccessCount]), not in-game round index.
-      // [minSession] 1: first app session can show a prompt once other gates pass
-      // (default 2 would require a second cold start before any prompt).
-      rating: const RatingConfig(minSession: 1),
+      rating: yallaRatingConfig,
       notifications: const NotificationsConfig(
         // Remote campaigns from the Firebase console. Receiver only: one topic
         // (all_users), title and body from the console, no data payloads. The

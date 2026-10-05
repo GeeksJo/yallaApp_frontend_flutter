@@ -18,11 +18,16 @@ class ScoreboardScreen extends StatefulWidget {
   const ScoreboardScreen({
     super.key,
     this.adsRoundFailed = false,
+    this.ratingLevel,
     this.debugRankedPlayers,
   }) : assert(debugRankedPlayers == null || kDebugMode);
 
   /// When true, the match ended after a timed-out round (vs a successful tap).
   final bool adsRoundFailed;
+
+  /// Cumulative correct-answer count. Set only when the match ended on a
+  /// success, so the results screen can offer a rating after its ad.
+  final int? ratingLevel;
 
   /// Debug-only: pre-sorted ranking list (highest score first). Skips GameKit work on open.
   final List<Player>? debugRankedPlayers;
@@ -43,22 +48,26 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       GameFeedback.completion();
-      if (GameKit.iap.adsRemoved.value) return;
-      setState(() => _adShowing = true);
-      try {
-        await GameKit.notifications.onFirstDailyCompletion().timeout(
-          const Duration(seconds: 6),
-          onTimeout: () {},
-        );
-        if (mounted) {
-          await GameKitAdBridge.presentAfterLevel(
-            context: context,
-            failed: widget.adsRoundFailed,
+      if (!GameKit.iap.adsRemoved.value) {
+        setState(() => _adShowing = true);
+        try {
+          await GameKit.notifications.onFirstDailyCompletion().timeout(
+            const Duration(seconds: 6),
+            onTimeout: () {},
           );
+          if (mounted) {
+            await GameKitAdBridge.presentAfterLevel(
+              context: context,
+              failed: widget.adsRoundFailed,
+            );
+          }
+        } finally {
+          if (mounted) setState(() => _adShowing = false);
         }
-      } finally {
-        if (mounted) setState(() => _adShowing = false);
       }
+      final level = widget.ratingLevel;
+      if (level == null || !mounted) return;
+      await GameKitRatingPrompt.presentIfEligible(context, level: level);
     });
   }
 

@@ -14,6 +14,7 @@ import '../services/countdown_urgency_policy.dart';
 import '../services/emergency_block_notice.dart';
 import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
+import '../services/rating_moment.dart';
 import '../services/storage_service.dart';
 import '../services/game_kit_products.dart';
 import '../theme/app_theme.dart';
@@ -582,7 +583,14 @@ class _QuestionScreenState extends State<QuestionScreen>
     });
   }
 
-  void _exitToPlayerSetup() {
+  Future<void> _abandonMatch() {
+    if (!RatingMoment.abandoned.recordFailure) return Future<void>.value();
+    return GameKit.rating.levelFailed();
+  }
+
+  Future<void> _exitToPlayerSetup() async {
+    await _abandonMatch();
+    if (!mounted) return;
     final names = context
         .read<GameProvider>()
         .players
@@ -695,7 +703,7 @@ class _QuestionScreenState extends State<QuestionScreen>
                           onPressed: () {
                             GameFeedback.tap();
                             Navigator.pop(dialogContext);
-                            _exitToPlayerSetup();
+                            unawaited(_exitToPlayerSetup());
                           },
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(
@@ -730,8 +738,9 @@ class _QuestionScreenState extends State<QuestionScreen>
                         onPressed: () async {
                           GameFeedback.tap();
                           Navigator.pop(dialogContext);
-                          final nav = Navigator.of(context);
+                          await _abandonMatch();
                           if (!mounted) return;
+                          final nav = Navigator.of(context);
                           nav.pushAndRemoveUntil(
                             MaterialPageRoute(
                               builder: (_) => const HomeScreen(),
@@ -784,10 +793,8 @@ class _QuestionScreenState extends State<QuestionScreen>
     final isGameOver = game.answerCorrect();
     coinProvider.addCoins(1);
     GameFeedback.success();
-    unawaited(_notifyRatingAfterCorrectAnswer());
-
     unawaited(
-      _navigate(
+      _finishCorrectAnswer(
         isGameOver,
         prevFlip: prevFlip,
         prevName: prevName,
@@ -796,11 +803,23 @@ class _QuestionScreenState extends State<QuestionScreen>
     );
   }
 
-  Future<void> _notifyRatingAfterCorrectAnswer() async {
-    final storage = context.read<StorageService>();
-    final level = await storage.incrementRatingSuccessCount();
+  Future<void> _finishCorrectAnswer(
+    bool isGameOver, {
+    required bool prevFlip,
+    required String prevName,
+    required String prevQuestionText,
+  }) async {
+    final level = await context
+        .read<StorageService>()
+        .incrementRatingSuccessCount();
     if (!mounted) return;
-    await GameKitRatingPrompt.presentIfEligible(context, level: level);
+    await _navigate(
+      isGameOver,
+      prevFlip: prevFlip,
+      prevName: prevName,
+      prevQuestionText: prevQuestionText,
+      ratingLevel: level,
+    );
   }
 
   void _onTimeout() {
@@ -815,8 +834,6 @@ class _QuestionScreenState extends State<QuestionScreen>
     final prevQuestionText = game.currentQuestion?.text(locale) ?? '';
     final prevFlip = game.isFlipped;
     final isGameOver = game.answerTimeout();
-
-    unawaited(GameKit.rating.levelFailed());
 
     unawaited(
       _navigate(
@@ -835,28 +852,48 @@ class _QuestionScreenState extends State<QuestionScreen>
     required String prevName,
     required String prevQuestionText,
     bool roundFailed = false,
+    int? ratingLevel,
   }) async {
     if (!mounted) return;
     final game = context.read<GameProvider>();
+    final roundJustCompleted = game.currentPlayerIndex == 0;
+    final moment = RatingMoment.forAnswer(
+      succeeded: !roundFailed,
+      roundCompleted: roundJustCompleted,
+      gameOver: isGameOver,
+    );
+    if (moment.recordFailure) {
+      await GameKit.rating.levelFailed();
+      if (!mounted) return;
+    }
 
     if (isGameOver) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => ScoreboardScreen(adsRoundFailed: roundFailed),
+          builder: (_) => ScoreboardScreen(
+            adsRoundFailed: roundFailed,
+            ratingLevel: moment.offerOnResults ? ratingLevel : null,
+          ),
         ),
       );
       return;
     }
 
     // All players finished a round; index wraps to 0 before the next question.
-    final roundJustCompleted = game.currentPlayerIndex == 0;
     if (roundJustCompleted) {
       await GameKitAdBridge.presentAfterLevel(
         context: context,
         failed: roundFailed,
       );
       if (!mounted) return;
+      if (moment.offerOnRoundBoundary && ratingLevel != null) {
+        await GameKitRatingPrompt.presentIfEligible(
+          context,
+          level: ratingLevel,
+        );
+        if (!mounted) return;
+      }
       GameKitAdBridge.preloadAds();
     }
 

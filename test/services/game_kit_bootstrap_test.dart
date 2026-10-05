@@ -38,4 +38,13 @@ void main() {
     expect(yallaSoundConfig.respectSilentMode, isFalse);
     expect(yallaHapticsConfig.isEnabled, isNull);
   });
+
+  test('rating uses the kit session and level gates', () {
+    expect(yallaRatingConfig.minSession, 2);
+    expect(yallaRatingConfig.minLevel, 4);
+    expect(yallaRatingConfig.maxLifetime, 3);
+    expect(yallaRatingConfig.minDaysBetween, 4);
+    expect(yallaRatingConfig.minSecondsAfterAd, 60);
+    expect(yallaRatingConfig.maxDismissals, 3);
+  });
 }
