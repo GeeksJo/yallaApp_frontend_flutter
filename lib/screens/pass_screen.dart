@@ -24,7 +24,7 @@ class _PassScreenState extends State<PassScreen>
   @override
   void initState() {
     super.initState();
-    GameKitAdBridge.preloadInterstitial();
+    GameKitAdBridge.preloadAds();
     _flipController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),

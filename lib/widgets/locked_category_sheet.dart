@@ -55,7 +55,11 @@ class LockedCategorySheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.monetization_on, color: AppColors.coin, size: coinIcon),
+              Icon(
+                Icons.monetization_on,
+                color: AppColors.coin,
+                size: coinIcon,
+              ),
               const SizedBox(width: 4),
               Text(
                 '${coinProvider.coins} ${l10n.coins}',
@@ -74,7 +78,9 @@ class LockedCategorySheet extends StatelessWidget {
             icon: Icons.timer,
             label: l10n.rentFor2Hours,
             cost: '${CoinProvider.rentCost}',
-            enabled: coinProvider.coins >= CoinProvider.rentCost,
+            enabled:
+                !coinProvider.isCoinGrantInFlight &&
+                coinProvider.coins >= CoinProvider.rentCost,
             onTap: () async {
               final success = await coinProvider.rentCategory(category.key);
               if (context.mounted) {
@@ -89,7 +95,9 @@ class LockedCategorySheet extends StatelessWidget {
             icon: Icons.star,
             label: l10n.buyForever,
             cost: '${CoinProvider.buyCost}',
-            enabled: coinProvider.coins >= CoinProvider.buyCost,
+            enabled:
+                !coinProvider.isCoinGrantInFlight &&
+                coinProvider.coins >= CoinProvider.buyCost,
             onTap: () async {
               final success = await coinProvider.buyCategory(category.key);
               if (context.mounted) {
@@ -107,11 +115,13 @@ class LockedCategorySheet extends StatelessWidget {
             // Always tappable now: the chain decides what to do, and a
             // readiness gate here just meant a permanently dead button
             // whenever inventory had not warmed yet.
-            enabled: true,
+            enabled: !coinProvider.isCoinGrantInFlight,
+            busy: coinProvider.isCoinGrantInFlight,
             isAd: true,
             onTap: () async {
-              final AdGrantOutcome outcome =
-                  await coinProvider.watchAdForCoins();
+              final AdGrantOutcome outcome = await coinProvider.watchAdForCoins(
+                context,
+              );
               if (!context.mounted) return;
               // The kit owns the copy, so each of the three non-granting
               // outcomes says something true. The old code discarded the
@@ -120,9 +130,9 @@ class LockedCategorySheet extends StatelessWidget {
                 GameKitLocalizations.of(context),
               );
               if (notice != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(notice.message)),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(notice.message)));
               }
             },
           ),
@@ -141,6 +151,7 @@ class LockedCategorySheet extends StatelessWidget {
     required bool enabled,
     required VoidCallback onTap,
     bool isAd = false,
+    bool busy = false,
   }) {
     final optPadH = isTablet ? 20.0 : 16.0;
     final optPadV = isTablet ? 18.0 : 14.0;
@@ -155,8 +166,12 @@ class LockedCategorySheet extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: optPadH, vertical: optPadV),
         decoration: BoxDecoration(
-          color: enabled ? AppColors.cardFill : AppColors.textPrimary.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(isTablet ? AppRadius.lg : AppRadius.md),
+          color: enabled
+              ? AppColors.cardFill
+              : AppColors.textPrimary.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(
+            isTablet ? AppRadius.lg : AppRadius.md,
+          ),
           border: Border.all(
             color: enabled ? AppColors.cardBorder : AppColors.cardFill,
           ),
@@ -180,28 +195,37 @@ class LockedCategorySheet extends StatelessWidget {
                 ),
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isAd ? Icons.play_arrow : Icons.monetization_on,
-                  color: isAd
-                      ? (enabled ? AppColors.correct : AppColors.textHint)
-                      : AppColors.coin,
-                  size: trailIcon,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  cost,
-                  style: TextStyle(
-                    fontFamily: AppFonts.family,
-                    color: enabled ? AppColors.textPrimary : AppColors.textHint,
-                    fontWeight: FontWeight.bold,
-                    fontSize: costSize,
+            if (busy)
+              SizedBox(
+                width: trailIcon,
+                height: trailIcon,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isAd ? Icons.play_arrow : Icons.monetization_on,
+                    color: isAd
+                        ? (enabled ? AppColors.correct : AppColors.textHint)
+                        : AppColors.coin,
+                    size: trailIcon,
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 4),
+                  Text(
+                    cost,
+                    style: TextStyle(
+                      fontFamily: AppFonts.family,
+                      color: enabled
+                          ? AppColors.textPrimary
+                          : AppColors.textHint,
+                      fontWeight: FontWeight.bold,
+                      fontSize: costSize,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

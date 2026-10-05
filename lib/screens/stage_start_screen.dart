@@ -48,7 +48,7 @@ class _StageStartScreenState extends State<StageStartScreen>
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      GameKitAdBridge.preloadInterstitial();
+      GameKitAdBridge.preloadAds();
       GameKit.haptics.lightTap();
       _playCountdownTick();
       _controller.forward();

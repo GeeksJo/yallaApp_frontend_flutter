@@ -23,7 +23,7 @@ void main() async {
   // Flutter will not accept a background-handler registration from inside
   // GameKit.initialize; it has to happen here in main, before runApp. Guarded
   // because it needs a live [DEFAULT] Firebase app.
-  if (FirebaseService.instance.isReady) {
+  if (FirebaseService.instance.hasDefaultFirebaseApp) {
     FirebaseMessaging.onBackgroundMessage(
       gameKitFirebaseMessagingBackgroundHandler,
     );

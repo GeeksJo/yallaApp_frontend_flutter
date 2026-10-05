@@ -56,6 +56,12 @@ class StorageService {
     return _prefs.getBool(_legacySoundKey);
   }
 
+  /// Legacy [haptics_enabled] value for one-time migration into GameKit preferences.
+  bool? getLegacyHapticsEnabledOrNull() {
+    if (!_prefs.containsKey(_hapticsKey)) return null;
+    return _prefs.getBool(_hapticsKey);
+  }
+
   int getQuestionTimerSeconds() {
     const defaultSeconds = 5;
     const minSeconds = 3;

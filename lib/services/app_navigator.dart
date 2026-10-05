@@ -1,4 +1,4 @@
 import 'package:flutter/material.dart';
 
-/// Used by [GameKitBootstrap] to show rating / promo UI without a `BuildContext`.
+/// Shared root navigator key for app-wide navigation helpers.
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();

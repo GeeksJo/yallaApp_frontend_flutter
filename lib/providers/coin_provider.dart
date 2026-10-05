@@ -2,27 +2,33 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
+
 import '../services/storage_service.dart';
 
+typedef CoinGrantRequester =
+    Future<AdGrantOutcome> Function(BuildContext context);
+
 class CoinProvider extends ChangeNotifier {
+  CoinProvider(this._storage, {CoinGrantRequester? coinGrantRequester})
+    : _coinGrantRequester = coinGrantRequester ?? _requestCoinGrant {
+    _coins = _storage.getCoins();
+    _purchased = _storage.getPurchasedCategories();
+  }
+
   final StorageService _storage;
+  final CoinGrantRequester _coinGrantRequester;
   late int _coins;
   late List<String> _purchased;
+  bool _coinGrantInFlight = false;
 
   static const int rentCost = 30;
   static const int buyCost = 100;
   static const int adReward = 20;
   static const Duration rentDuration = Duration(hours: 2);
 
-  static const Duration _rewardedLoadCap = Duration(seconds: 5);
-  static const Duration _rewardedShowCap = Duration(seconds: 30);
-
-  CoinProvider(this._storage) {
-    _coins = _storage.getCoins();
-    _purchased = _storage.getPurchasedCategories();
-  }
-
   int get coins => _coins;
+
+  bool get isCoinGrantInFlight => _coinGrantInFlight;
 
   bool isCategoryUnlocked(String categoryKey) {
     if (_purchased.contains(categoryKey)) return true;
@@ -63,27 +69,41 @@ class CoinProvider extends ChangeNotifier {
   /// video all produced `false` and - because the caller discarded it - no
   /// message at all. The chain handles the tiers, the offline gate and the
   /// capped free grant; the outcome tells the caller which message to show.
-  Future<AdGrantOutcome> watchAdForCoins() async {
-    unawaited(GameKit.ads.preloadAds());
-    AdGrantOutcome outcome;
+  Future<AdGrantOutcome> watchAdForCoins(BuildContext context) async {
+    if (_coinGrantInFlight) {
+      return AdGrantOutcome.noneAvailable;
+    }
+
+    _coinGrantInFlight = true;
+    notifyListeners();
+
     try {
-      outcome = await GameKit.ads.requestAdGrant(
-        placement: 'free_coins',
-        // Coins are spendable on anything, so they draw on the currency window.
-        cooldownGroup: AdGrantCooldownGroup.currency,
-      );
+      final outcome = await _coinGrantRequester(context);
+      if (outcome.isGranted) {
+        await addCoins(adReward);
+      }
+      return outcome;
     } catch (_) {
-      // A crash inside the chain must not become free coins, and must still
-      // leave the caller an outcome to explain.
-      outcome = AdGrantOutcome.offline;
+      // A crash inside the chain must not become free coins. It is not proof
+      // that the player is offline, so use the neutral "try later" outcome.
+      return AdGrantOutcome.noneAvailable;
+    } finally {
+      _coinGrantInFlight = false;
+      notifyListeners();
     }
-    if (outcome.isGranted) {
-      await addCoins(adReward);
-    }
-    return outcome;
   }
 
   bool get isAdReady =>
       GameKit.ads.canShowRewarded(RewardedReason.hint) &&
       GameKit.ads.isRewardedReady;
+
+  static Future<AdGrantOutcome> _requestCoinGrant(BuildContext context) {
+    unawaited(GameKit.ads.preloadAds());
+    return GameKit.ads.requestAdGrant(
+      placement: 'free_coins',
+      // Coins are spendable on anything, so they draw on the currency window.
+      cooldownGroup: AdGrantCooldownGroup.currency,
+      context: context,
+    );
+  }
 }

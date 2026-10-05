@@ -34,7 +34,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      GameKitAdBridge.preloadInterstitial();
+      GameKitAdBridge.preloadAds();
     });
   }
 

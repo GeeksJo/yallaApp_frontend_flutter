@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/home_screen.dart';
 import 'services/app_navigator.dart';
+import 'services/emergency_gate.dart';
+import 'services/firebase_service.dart';
 import 'services/game_kit_bootstrap.dart';
 import 'theme/app_theme.dart';
 
@@ -57,6 +59,13 @@ class _YallaAppState extends State<YallaApp> with WidgetsBindingObserver {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: buildAppTheme(localeProvider.isArabic),
+      builder: (context, child) {
+        return HostEmergencyGate(
+          refresh: FirebaseService.instance.refresh,
+          recheck: FirebaseService.instance.revision,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       home: const HomeScreen(),
     );
   }

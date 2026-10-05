@@ -1,30 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
 
-
 /// Shared bottom banner slot for menu, setup, and gameplay screens.
 ///
-/// Gates on [GameKit.ads.bannersEnabled] and applies
-/// consistent spacing above the banner.
+/// [GameKitBannerSlot] owns no-fill collapse and only applies padding once an
+/// actual banner is visible.
 class AppBottomBannerSlot extends StatelessWidget {
   const AppBottomBannerSlot({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: GameKit.ads.bannersEnabled,
-      builder: (context, enabled, _) {
-        if (!enabled) return const SizedBox.shrink();
-
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            const Center(child: GameKitBannerSlot()),
-            const SizedBox(height: 8),
-          ],
-        );
-      },
+    return const Center(
+      child: GameKitBannerSlot(padding: EdgeInsets.only(top: 10, bottom: 8)),
     );
   }
 }

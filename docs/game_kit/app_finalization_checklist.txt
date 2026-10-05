@@ -1,0 +1,30 @@
+Puzzle Game Developer Cheat Sheet and acceptance criteria 
+* Haptic feedback and satisfying sound effects on correct moves and level completion
+* Rewarded video ads for hints, extra moves, or level skips
+* Interstitial ads only between levels, never mid-puzzle, every 2nd completed level with a 40-second cooldown starting after the ad closes and a max of 8 interstitials per session
+* A one-time "Remove Ads" IAP priced at $2.99
+    * Small persistent "no ads" icon in the corner of the main gameplay screen opens a popup, not buried in settings
+* Never show an ad after a failed attempt - the player is already frustrated
+* No fake X buttons on ads - use mediation and filter out bad ad networks
+* When a player taps "skip" on an ad, show a one-time tooltip: "Tired of ads? Remove them forever - $2.99"
+* Offline play works fully
+* "More Puzzles" button on the main menu with a "NEW" badge when you release a new game
+* Push notifications - 3 times per week, not daily
+    * Send on 3 fixed days (e.g. Saturday, Monday, Wednesday) at 6pm local time
+    * Message: "Your daily puzzle is ready" or an appropriate message
+    * Don't send any notification in the first 48 hours after install
+    * If the player already played today, don't send anything
+    * If the player ignores 3 notifications in a row, stop sending until they open the app on their own
+    * On iOS, ask for notification permission after the player completes their first daily puzzle, not on first launch
+* Rating prompt - two-step flow (sentiment-based)
+    * Trigger after a successful level completion
+    * Only if level ≥ 4 and session ≥ 2
+    * Do not show after a failed level or within 60 seconds of an ad
+    * Show a soft prompt first: “Enjoying the game?”
+    * If positive → open store rating
+    * If negative → open feedback (do not open store)
+    * Maximum 3 total prompts per user
+    * Wait at least 4 days between prompts
+    * Never show more than once per day
+    * If user rates → never show again
+    * If dismissed 3 times → never show again

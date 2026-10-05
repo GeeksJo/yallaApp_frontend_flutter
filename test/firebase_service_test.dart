@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_kit/game_kit.dart';
+import 'package:yalla/const/remote_config_keys.dart';
 import 'package:yalla/services/firebase_service.dart';
 
 /// The ads kill switch, and what happens before Firebase is configured.
@@ -13,6 +15,8 @@ import 'package:yalla/services/firebase_service.dart';
 /// 2. Nothing here may throw when Firebase is absent. The config files arrive
 ///    separately from this code, so every build in between has to launch.
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('ads stay enabled when Firebase was never configured', () {
     // No initialize() call, so no [DEFAULT] app - the state every build is in
     // until google-services.json and GoogleService-Info.plist are added.
@@ -80,4 +84,221 @@ void main() {
       expect(adapter.getDouble('some_rate', defaultValue: 1.5), 1.5);
     });
   });
+
+  group('with an injected Remote Config client', () {
+    late _FakeRemoteConfigClient remoteConfig;
+    late FirebaseService service;
+
+    setUp(() {
+      remoteConfig = _FakeRemoteConfigClient();
+      service = FirebaseService.forTesting(
+        ensureDefaultFirebaseApp: () async {},
+        remoteConfigFactory: () => remoteConfig,
+      );
+    });
+
+    tearDown(() async {
+      remoteConfig.completeFetch();
+      await service.disposeForTesting();
+      await remoteConfig.dispose();
+    });
+
+    test('initializes from cache/defaults without waiting for fetch', () async {
+      remoteConfig.holdFetch();
+
+      await service.initialize();
+
+      expect(service.isReady, isTrue);
+      expect(service.hasDefaultFirebaseApp, isTrue);
+      expect(remoteConfig.fetchCalls, 1);
+      expect(remoteConfig.fetchCompleter?.isCompleted, isFalse);
+
+      remoteConfig.completeFetch();
+      await service.refresh();
+    });
+
+    test('does not expose local defaults as host kit overrides', () async {
+      await service.initialize();
+      remoteConfig.completeFetch();
+
+      expect(
+        service.getString(
+          RemoteConfigKeys.interstitialCooldownSeconds,
+          defaultValue: 'kit-default',
+        ),
+        'kit-default',
+      );
+      expect(
+        service.getInt(
+          RemoteConfigKeys.interstitialCooldownSeconds,
+          defaultValue: 40,
+        ),
+        40,
+      );
+    });
+
+    test('preserves published zero and ignores malformed integers', () async {
+      remoteConfig.setRemote(RemoteConfigKeys.interstitialCooldownSeconds, '0');
+      remoteConfig.setRemote(RemoteConfigTestKeys.malformedInt, 'oops');
+
+      await service.initialize();
+      remoteConfig.completeFetch();
+
+      expect(
+        service.getInt(
+          RemoteConfigKeys.interstitialCooldownSeconds,
+          defaultValue: 40,
+        ),
+        0,
+      );
+      expect(
+        service.getInt(RemoteConfigTestKeys.malformedInt, defaultValue: 4),
+        4,
+      );
+    });
+
+    test('ads kill switch only turns off on a published false value', () async {
+      await service.initialize();
+      remoteConfig.completeFetch();
+
+      expect(service.resolveAdsEnabled(), isTrue);
+
+      remoteConfig.setRemote(RemoteConfigKeys.adsEnabled, '0');
+      expect(service.resolveAdsEnabled(), isFalse);
+
+      remoteConfig.setRemote(RemoteConfigKeys.adsEnabled, 'no');
+      expect(service.resolveAdsEnabled(), isFalse);
+
+      remoteConfig.setRemote(RemoteConfigKeys.adsEnabled, 'not a bool');
+      expect(service.resolveAdsEnabled(), isTrue);
+    });
+
+    test('app moved is true only for a published truthy value', () async {
+      await service.initialize();
+      remoteConfig.completeFetch();
+
+      expect(service.resolveAppMoved(), isFalse);
+
+      remoteConfig.setRemote(RemoteConfigKeys.showAppMoved, 'yes');
+      expect(service.resolveAppMoved(), isTrue);
+
+      remoteConfig.setRemote(RemoteConfigKeys.showAppMoved, 'no');
+      expect(service.resolveAppMoved(), isFalse);
+    });
+
+    test('realtime updates activate and publish notifier values', () async {
+      await service.initialize();
+      remoteConfig.completeFetch();
+      final initialRevision = service.revision.value;
+
+      remoteConfig.setRemote(RemoteConfigKeys.adsEnabled, 'false');
+      remoteConfig.emitRealtimeUpdate();
+      await pumpEventQueue();
+
+      expect(remoteConfig.activateCalls, greaterThanOrEqualTo(2));
+      expect(service.adsEnabled.value, isFalse);
+      expect(service.revision.value, greaterThan(initialRevision));
+    });
+
+    test('refresh calls are coalesced', () async {
+      await service.initialize();
+      remoteConfig.completeFetch();
+      await service.refresh();
+      expect(remoteConfig.fetchCalls, 1);
+
+      remoteConfig.holdFetch();
+      final first = service.refresh();
+      final second = service.refresh();
+
+      expect(remoteConfig.fetchCalls, 2);
+      remoteConfig.completeFetch();
+      await Future.wait<void>(<Future<void>>[first, second]);
+    });
+  });
+}
+
+abstract final class RemoteConfigTestKeys {
+  static const String malformedInt = 'test_malformed_int';
+}
+
+class _FakeRemoteConfigClient implements RemoteConfigClient {
+  final Map<String, RemoteConfigEntry> _values = <String, RemoteConfigEntry>{};
+  final StreamController<void> _updates = StreamController<void>.broadcast();
+
+  Completer<bool>? fetchCompleter;
+  Future<bool>? fetchResult;
+  int activateCalls = 0;
+  int fetchCalls = 0;
+
+  @override
+  Future<void> setConfigSettings({
+    required Duration fetchTimeout,
+    required Duration minimumFetchInterval,
+  }) async {}
+
+  @override
+  Future<void> setDefaults(Map<String, Object> defaults) async {
+    for (final entry in defaults.entries) {
+      _values.putIfAbsent(
+        entry.key,
+        () => RemoteConfigEntry(
+          source: RemoteConfigEntrySource.defaultValue,
+          stringValue: entry.value.toString(),
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<bool> activate() async {
+    activateCalls += 1;
+    return true;
+  }
+
+  @override
+  Future<bool> fetchAndActivate() {
+    fetchCalls += 1;
+    final result = fetchResult;
+    if (result != null) return result;
+    return Future<bool>.value(true);
+  }
+
+  @override
+  RemoteConfigEntry getValue(String key) {
+    return _values[key] ??
+        const RemoteConfigEntry(
+          source: RemoteConfigEntrySource.staticValue,
+          stringValue: '',
+        );
+  }
+
+  @override
+  Stream<void> get onConfigUpdated => _updates.stream;
+
+  void setRemote(String key, String value) {
+    _values[key] = RemoteConfigEntry(
+      source: RemoteConfigEntrySource.remoteValue,
+      stringValue: value,
+    );
+  }
+
+  void emitRealtimeUpdate() {
+    _updates.add(null);
+  }
+
+  void holdFetch() {
+    fetchCompleter = Completer<bool>();
+    fetchResult = fetchCompleter!.future;
+  }
+
+  void completeFetch() {
+    final completer = fetchCompleter;
+    if (completer != null && !completer.isCompleted) {
+      completer.complete(true);
+    }
+    fetchCompleter = null;
+    fetchResult = null;
+  }
+
+  Future<void> dispose() => _updates.close();
 }

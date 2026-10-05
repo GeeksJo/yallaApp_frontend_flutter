@@ -92,7 +92,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       unawaited(GameKit.notifications.markPlayedToday());
-      GameKitAdBridge.preloadInterstitial();
+      GameKitAdBridge.preloadAds();
       if (isFFA) {
         unawaited(_ffaStartAnswerPhase());
       } else {
@@ -155,7 +155,7 @@ class _QuestionScreenState extends State<QuestionScreen>
 
   Future<void> _ffaStartAnswerPhase() async {
     if (!mounted || _answered) return;
-    GameKitAdBridge.preloadInterstitial();
+    GameKitAdBridge.preloadAds();
     _resetAnswerTimerForNewRound();
     _playGoSound();
     if (!mounted || _answered) return;
@@ -167,7 +167,7 @@ class _QuestionScreenState extends State<QuestionScreen>
   /// 1v1: flip handoff or first question after [StageStartScreen] - no 2→1 intro.
   Future<void> _start1v1AnswerPhase({bool hideQuestionFirst = true}) async {
     if (!mounted || _answered) return;
-    GameKitAdBridge.preloadInterstitial();
+    GameKitAdBridge.preloadAds();
     _resetAnswerTimerForNewRound();
     if (hideQuestionFirst) {
       setState(() {
@@ -183,10 +183,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     _timerController.forward(from: 0);
   }
 
-  Widget _buildCrossPromoButton({
-    required bool isTablet,
-    VoidCallback? onTap,
-  }) {
+  Widget _buildCrossPromoButton({required bool isTablet, VoidCallback? onTap}) {
     final size = isTablet ? 100.0 : 44.0;
     final iconSize = isTablet ? 80.0 : 24.0;
     return Material(
@@ -390,8 +387,9 @@ class _QuestionScreenState extends State<QuestionScreen>
     required AppLocalizations l10n,
   }) {
     final fontSize = isTablet ? 38.0 : 22.0;
-    final showQuestion =
-        is1v1 ? (_introComplete && !_turnFlipping) : _introComplete;
+    final showQuestion = is1v1
+        ? (_introComplete && !_turnFlipping)
+        : _introComplete;
     if (!showQuestion) {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: isTablet ? 28 : 20),
@@ -566,9 +564,7 @@ class _QuestionScreenState extends State<QuestionScreen>
         .toList();
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (_) => PlayerSetupScreen(initialNames: names),
-      ),
+      MaterialPageRoute(builder: (_) => PlayerSetupScreen(initialNames: names)),
       (route) => route.isFirst,
     );
   }
@@ -705,9 +701,6 @@ class _QuestionScreenState extends State<QuestionScreen>
                         onPressed: () async {
                           Navigator.pop(dialogContext);
                           final nav = Navigator.of(context);
-                          try {
-                            await GameKitAdBridge.presentOnAbandonHome();
-                          } catch (_) {}
                           if (!mounted) return;
                           nav.pushAndRemoveUntil(
                             MaterialPageRoute(
@@ -778,7 +771,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     final storage = context.read<StorageService>();
     final level = await storage.incrementRatingSuccessCount();
     if (!mounted) return;
-    await GameKit.rating.levelSucceeded(level: level);
+    await GameKitRatingPrompt.presentIfEligible(context, level: level);
   }
 
   void _onTimeout() {
@@ -831,9 +824,12 @@ class _QuestionScreenState extends State<QuestionScreen>
     // All players finished a round; index wraps to 0 before the next question.
     final roundJustCompleted = game.currentPlayerIndex == 0;
     if (roundJustCompleted) {
-      await GameKitAdBridge.presentAfterLevel(failed: roundFailed);
+      await GameKitAdBridge.presentAfterLevel(
+        context: context,
+        failed: roundFailed,
+      );
       if (!mounted) return;
-      GameKitAdBridge.preloadInterstitial();
+      GameKitAdBridge.preloadAds();
     }
 
     if (game.mode == GameMode.oneVsOne) {
