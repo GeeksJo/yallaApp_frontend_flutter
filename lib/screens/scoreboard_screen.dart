@@ -57,20 +57,17 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
         // A missing Firebase app or a plugin failure must not block results.
       }
       if (!mounted) return;
-      if (!GameKit.iap.adsRemoved.value) {
-        setState(() => _adShowing = true);
-        try {
-          await GameKitAdBridge.presentAfterLevel(
-            context: context,
-            failed: widget.adsRoundFailed,
-          );
-        } finally {
-          if (mounted) setState(() => _adShowing = false);
-        }
+      setState(() => _adShowing = true);
+      try {
+        await GameKitAdBridge.presentRatingThenInterstitialAfterLevel(
+          context: context,
+          failed: widget.adsRoundFailed,
+          ratingLevel: widget.ratingLevel,
+          offerRating: widget.ratingLevel != null,
+        );
+      } finally {
+        if (mounted) setState(() => _adShowing = false);
       }
-      final level = widget.ratingLevel;
-      if (level == null || !mounted) return;
-      await presentYallaRatingIfEligible(context, level: level);
     });
   }
 

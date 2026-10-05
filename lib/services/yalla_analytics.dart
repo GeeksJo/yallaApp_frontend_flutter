@@ -71,18 +71,3 @@ Future<void> yallaSessionReplaySetup() {
   return GameSessionTracker.logReplayedOnly(yallaAnalyticsGameName);
 }
 
-/// Kit rating UI, plus the host `feedback_email_opened` event when the
-/// player chooses the feedback path. The kit still opens the mail client.
-Future<void> presentYallaRatingIfEligible(
-  BuildContext context, {
-  required int level,
-}) async {
-  final subscription = GameKit.rating.onShouldShowFeedbackForm.listen((_) {
-    unawaited(GameAnalytics.logFeedbackEmailOpened());
-  });
-  try {
-    await GameKitRatingPrompt.presentIfEligible(context, level: level);
-  } finally {
-    await subscription.cancel();
-  }
-}

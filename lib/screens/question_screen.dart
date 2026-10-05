@@ -16,7 +16,6 @@ import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
 import '../services/rating_moment.dart';
 import '../services/storage_service.dart';
-import '../services/game_kit_products.dart';
 import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import '../widgets/countdown_timer.dart';
@@ -311,7 +310,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     required bool isTablet,
     required String centerName,
     required VoidCallback? onPause,
-    required VoidCallback? onRemoveAds,
+    required bool removeAdsEnabled,
   }) {
     return Padding(
       padding: EdgeInsets.fromLTRB(4, isTablet ? 8 : 4, 4, 0),
@@ -351,14 +350,15 @@ class _QuestionScreenState extends State<QuestionScreen>
               if (adsRemoved) {
                 return SizedBox(width: w, height: w);
               }
-              return IconButton(
-                style: IconButton.styleFrom(minimumSize: Size(w, w)),
-                tooltip: l10n.removeAds,
-                onPressed: onRemoveAds,
-                icon: Image.asset(
-                  'assets/images/no_ads.png',
-                  height: isTablet ? 100 : 40,
-                  fit: BoxFit.contain,
+              return IgnorePointer(
+                ignoring: !removeAdsEnabled,
+                child: Opacity(
+                  opacity: removeAdsEnabled ? 1 : 0.35,
+                  child: GameKitRemoveAdsIconButton(
+                    imagePath: 'assets/images/no_ads.png',
+                    width: isTablet ? 100 : 40,
+                    height: isTablet ? 100 : 40,
+                  ),
                 ),
               );
             },
@@ -479,7 +479,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     required bool isTablet,
     required bool is1v1,
     required VoidCallback? onPause,
-    required VoidCallback? onRemoveAds,
+    required bool removeAdsEnabled,
     required String headerName,
     required String questionText,
     required bool redEnabled,
@@ -498,7 +498,7 @@ class _QuestionScreenState extends State<QuestionScreen>
           isTablet: isTablet,
           centerName: headerName,
           onPause: onPause,
-          onRemoveAds: onRemoveAds,
+          removeAdsEnabled: removeAdsEnabled,
         ),
         _buildRoundLine(l10n, game, isTablet),
         if (is1v1 && game.players.length == 2)
@@ -555,39 +555,6 @@ class _QuestionScreenState extends State<QuestionScreen>
     if (_answered || _paused || _turnFlipping || !_introComplete) return;
     GameFeedback.tap();
     unawaited(showAppCrossPromoSheet(context));
-  }
-
-  Future<void> _removeAdsFromHeader() async {
-    if (_answered || _paused || _turnFlipping || !_introComplete) return;
-    if (GameKit.iap.adsRemoved.value) return;
-    GameFeedback.tap();
-    unawaited(
-      GameAnalytics.logIapOfferShown(
-        productId: GameKitProducts.removeAds,
-        source: GameAnalyticsKeys.sourceHudIcon,
-      ),
-    );
-
-    final l10n = AppLocalizations.of(context)!;
-    final price = GameKit.iap.getFormattedPrice(GameKitProducts.removeAds);
-    final ui = GameKit.settingsUi;
-    final dialogColors = GameKitSettingsDialogColors.fromConfig(
-      seedColor: ui?.seedColor ?? AppColors.primary,
-      dialog: ui?.dialog,
-    );
-    final ok = await GameKitSettingsDialogs.showConfirmRemoveAds(
-      context,
-      dialogColors: dialogColors,
-      locale: GameKit.locale,
-      price: price,
-      fontFamily: ui?.fontFamily,
-    );
-    if (!ok || !mounted) return;
-    await GameKit.iap.purchaseRemoveAds();
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.purchaseThanks)));
   }
 
   void _togglePause() {
@@ -910,15 +877,13 @@ class _QuestionScreenState extends State<QuestionScreen>
 
     // All players finished a round; index wraps to 0 before the next question.
     if (roundJustCompleted) {
-      await GameKitAdBridge.presentAfterLevel(
+      await GameKitAdBridge.presentRatingThenInterstitialAfterLevel(
         context: context,
         failed: roundFailed,
+        ratingLevel: ratingLevel,
+        offerRating: moment.offerOnRoundBoundary,
       );
       if (!mounted) return;
-      if (moment.offerOnRoundBoundary && ratingLevel != null) {
-        await presentYallaRatingIfEligible(context, level: ratingLevel);
-        if (!mounted) return;
-      }
       GameKitAdBridge.preloadAds();
     }
 
@@ -1013,9 +978,8 @@ class _QuestionScreenState extends State<QuestionScreen>
       isTablet: isTablet,
       is1v1: is1v1,
       onPause: _turnFlipping || !_introComplete ? null : _showPauseMenu,
-      onRemoveAds: _turnFlipping || !_introComplete || _answered || _paused
-          ? null
-          : _removeAdsFromHeader,
+      removeAdsEnabled:
+          !_turnFlipping && _introComplete && !_answered && !_paused,
       headerName: headerName,
       questionText: questionText,
       redEnabled: _introComplete,
@@ -1092,7 +1056,7 @@ class _QuestionScreenState extends State<QuestionScreen>
       isTablet: isTablet,
       is1v1: is1v1,
       onPause: null,
-      onRemoveAds: null,
+      removeAdsEnabled: false,
       headerName: game.currentPlayer.name,
       questionText: question?.text(locale) ?? '',
       redEnabled: _introComplete,

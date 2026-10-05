@@ -11,6 +11,7 @@ import 'firebase_service.dart';
 import 'game_kit_products.dart';
 import 'storage_service.dart';
 import 'yalla_analytics.dart';
+import 'yalla_rating_helper.dart';
 
 // Call sites for `game_kit` in this app:
 //
@@ -24,9 +25,9 @@ import 'yalla_analytics.dart';
 // - [GameKit.notifications.onFirstDailyCompletion] - [ScoreboardScreen] after
 //   a finished match, including Remove Ads. Permission is requested there, not
 //   on launch.
-// - [GameKitRatingPrompt.presentIfEligible] - after a successful round's
-//   interstitial, or on [ScoreboardScreen] after its interstitial. The level
-//   is the cumulative correct-answer count, not the in-game round.
+// - [presentYallaRatingPromptIfEligible] - before interstitials on the same beat
+//   (round boundary or scoreboard). The level is the cumulative correct-answer
+//   count, not the in-game round.
 // - [GameKit.iap] - purchases / restore / prices in [SettingsScreen] & [QuestionScreen].
 // - [GameKit.crossPromo] - catalog sheet; badge on home settings.
 // - [GameKit.share] - settings share row.
@@ -87,6 +88,7 @@ GameKitSettingsUiConfig buildYallaGameKitSettingsUiConfig(Locale locale) {
     seedColor: AppColors.primary,
     aboutDescription: _aboutDescriptionFor(locale),
     iconColor: AppColors.primary,
+    removeAdsIconAssetPath: 'assets/images/no_ads.png',
     fontFamily: AppFonts.family,
     sectionCardAppearance: GameKitSectionCardAppearance.frosted,
     showCrossPromo: true,
@@ -279,8 +281,13 @@ Future<void> refreshGameKitAfterResume() async {
 final class GameKitAdBridge {
   GameKitAdBridge._();
 
+  static StreamSubscription<void>? _removeAdsTooltipSub;
+
   static void attach() {
-    // Interstitials are driven from [presentAfterLevel] at round boundaries.
+    _removeAdsTooltipSub?.cancel();
+    // Kit presents the post-interstitial remove-ads dialog; subscription is
+    // optional (Barrah logs when the signal fires).
+    _removeAdsTooltipSub = GameKit.ads.onShouldShowRemoveAdsTooltip.listen((_) {});
   }
 
   /// Fire-and-forget ad warmup. The kit guards duplicate loads internally.
@@ -289,11 +296,27 @@ final class GameKitAdBridge {
     unawaited(GameKit.ads.preloadAds());
   }
 
-  static Future<void> presentAfterLevel({
+  /// Rating (if eligible) → interstitial on the same beat. Skips the ad when
+  /// the soft prompt was shown, matching Barrah / kit policy.
+  static Future<void> presentRatingThenInterstitialAfterLevel({
     required BuildContext context,
     required bool failed,
+    int? ratingLevel,
+    bool offerRating = false,
   }) async {
+    var ratingShown = false;
+    if (offerRating && ratingLevel != null) {
+      await bumpRatingSessionAfterFirstSuccess(ratingLevel);
+      if (!context.mounted) return;
+      ratingShown = await presentYallaRatingPromptIfEligible(
+        context: context,
+        level: ratingLevel,
+      );
+      if (!context.mounted) return;
+    }
+
     if (GameKit.iap.adsRemoved.value) return;
+    if (ratingShown) return;
 
     var shouldShow = false;
     final sub = GameKit.ads.onShouldShowInterstitial.listen((_) {
@@ -310,5 +333,8 @@ final class GameKitAdBridge {
     await GameKit.ads.runInterstitialCycle(context: context);
   }
 
-  static Future<void> detach() async {}
+  static Future<void> detach() async {
+    await _removeAdsTooltipSub?.cancel();
+    _removeAdsTooltipSub = null;
+  }
 }

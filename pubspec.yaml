@@ -1,7 +1,7 @@
 name: yalla
 description: "Yalla! - 5 seconds party game"
 publish_to: "none"
-version: 1.0.9+9
+version: 1.0.11+11
 environment:
   sdk: ^3.11.0
 
@@ -33,6 +33,13 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   flutter_native_splash: ^2.4.6
+
+# 13.3.0 calls NSProcessInfo.isiOSAppOnVision directly; that API needs iOS SDK
+# 26.1+, which breaks builds on Xcode 26.0.x. 13.2.0 uses runtime dispatch.
+dependency_overrides:
+  device_info_plus: 13.2.0
+  # Play Billing 8+ (in_app_purchase_android 0.5.x). Do not resolve to 0.4.x / 7.x.
+  in_app_purchase_android: 0.5.3
 
 flutter:
   generate: true

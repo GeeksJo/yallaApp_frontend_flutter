@@ -83,6 +83,11 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
+    // Play policy (Aug 2026): Billing Library 8+ required; Google recommends 9.x.
+    // game_kit IAP uses in_app_purchase_android (BillingClient). Older plugin
+    // releases pulled 7.x and triggered Play Console warnings on shipped AABs.
+    implementation("com.android.billingclient:billing:9.1.0")
+
     // LevelPlay network adapters. The unity_levelplay_mediation plugin ships
     // only the mediation SDK core, and game_kit is a pure Dart package with no
     // android/ of its own, so each host app declares the adapters it needs.

@@ -13,11 +13,11 @@ class RatingMoment {
 
   final bool recordFailure;
 
-  /// Successful round that does not end the match. Offer after the fullscreen
-  /// ad, before the next turn.
+  /// Successful round that does not end the match. Offer before the
+  /// interstitial on the same beat, then skip the ad if the prompt shows.
   final bool offerOnRoundBoundary;
 
-  /// Match finished on a success. Offer on the results screen, after its ad.
+  /// Match finished on a success. Offer on the results screen before its ad.
   final bool offerOnResults;
 
   static const abandoned = RatingMoment._(

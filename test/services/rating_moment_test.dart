@@ -14,7 +14,7 @@ void main() {
     expect(moment.offerOnResults, isFalse);
   });
 
-  test('a successful round offers after the ad, not on the results screen', () {
+  test('a successful round offers on the boundary, not on the results screen', () {
     final moment = RatingMoment.forAnswer(
       succeeded: true,
       roundCompleted: true,
