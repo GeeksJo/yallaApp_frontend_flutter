@@ -3,7 +3,9 @@ import 'package:yalla/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
+import '../services/game_feedback.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback_back_button.dart';
 import '../widgets/app_bottom_banner_slot.dart';
 import '../widgets/responsive_layout.dart';
 import 'category_selection_screen.dart';
@@ -67,19 +69,20 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
 
   bool get _canProceed {
     final mode = context.read<GameProvider>().mode;
-    final minPlayers =
-        mode == GameMode.freeForAll ? minFreeForAllPlayers : 2;
+    final minPlayers = mode == GameMode.freeForAll ? minFreeForAllPlayers : 2;
     return _controllers.length >= minPlayers &&
         _controllers.every((c) => c.text.trim().isNotEmpty);
   }
 
   void _addPlayer() {
+    GameFeedback.tap();
     setState(() {
       _controllers.add(TextEditingController());
     });
   }
 
   void _removePlayer(int index) {
+    GameFeedback.tap();
     final minPlayers = context.read<GameProvider>().mode == GameMode.freeForAll
         ? minFreeForAllPlayers
         : 2;
@@ -152,6 +155,7 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
     final isTablet = ResponsiveLayout.isTablet(context);
     return Scaffold(
       appBar: AppBar(
+        leading: const FeedbackBackButton(),
         title: Text(l10n.playerSetup),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -226,6 +230,7 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                     child: ElevatedButton(
                       onPressed: _canProceed
                           ? () {
+                              GameFeedback.tap();
                               final names = _controllers
                                   .map((c) => c.text.trim())
                                   .toList();

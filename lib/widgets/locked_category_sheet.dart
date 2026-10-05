@@ -4,6 +4,7 @@ import 'package:yalla/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../models/category.dart';
 import '../providers/coin_provider.dart';
+import '../services/game_feedback.dart';
 import '../theme/app_theme.dart';
 import 'responsive_layout.dart';
 
@@ -161,7 +162,12 @@ class LockedCategorySheet extends StatelessWidget {
     final costSize = isTablet ? 18.0 : 15.0;
 
     return GestureDetector(
-      onTap: enabled ? onTap : null,
+      onTap: enabled
+          ? () {
+              GameFeedback.tap();
+              onTap();
+            }
+          : null,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: optPadH, vertical: optPadV),

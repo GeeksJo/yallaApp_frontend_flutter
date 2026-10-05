@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yalla/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback_back_button.dart';
 import '../widgets/responsive_layout.dart';
 
 class HowToPlayScreen extends StatelessWidget {
@@ -45,6 +46,7 @@ class HowToPlayScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const FeedbackBackButton(),
         title: Text(
           l10n.howToPlay,
           style: TextStyle(

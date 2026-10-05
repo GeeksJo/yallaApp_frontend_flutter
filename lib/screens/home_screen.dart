@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/game_state.dart';
 import '../providers/locale_provider.dart';
 import '../providers/game_provider.dart';
+import '../services/game_feedback.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bottom_banner_slot.dart';
 import '../widgets/app_cross_promo.dart';
@@ -532,10 +533,13 @@ class _HomeFooterActions extends StatelessWidget {
         ),
         SizedBox(height: gapMoreToHelp),
         TextButton.icon(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const HowToPlayScreen()),
-          ),
+          onPressed: () {
+            GameFeedback.tap();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const HowToPlayScreen()),
+            );
+          },
           icon: Icon(
             Icons.help_outline,
             color: AppColors.textSecondary,
@@ -582,7 +586,10 @@ class _SettingsTopChip extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(AppRadius.pill),
-            onTap: onTap,
+            onTap: () {
+              GameFeedback.tap();
+              onTap();
+            },
             child: Ink(
               padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
               decoration: BoxDecoration(
@@ -638,7 +645,10 @@ class _ModeButton extends StatelessWidget {
         : Icons.chevron_left_rounded;
 
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        GameFeedback.tap();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(AppRadius.xl),
       splashColor: Colors.white.withValues(alpha: 0.12),
       highlightColor: Colors.transparent,
@@ -781,7 +791,10 @@ class _MoreGamesPillButton extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         InkWell(
-          onTap: onTap,
+          onTap: () {
+            GameFeedback.tap();
+            onTap();
+          },
           borderRadius: BorderRadius.circular(AppRadius.xl),
           splashColor: Colors.white.withValues(alpha: 0.12),
           highlightColor: Colors.transparent,

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../core/config/level_play_ids.dart';
 import '../theme/app_theme.dart';
 import 'audio_preference_migration.dart';
 import 'firebase_service.dart';
@@ -91,10 +90,14 @@ Future<void> initializeGameKit(StorageService storage) async {
     legacyHaptics: storage.getLegacyHapticsEnabledOrNull(),
   );
 
-  // LevelPlay ids are compiled in, so rewarded is always configured. The old
-  // `.env` plumbing meant rewarded silently never loaded whenever `.env` was
-  // absent - which it was in every checkout, so the whole rewarded path was
-  // dead code.
+  // Frozen for this process. LevelPlay cannot be re-keyed after init, and a
+  // published unit id must not swap mid-session. Native ids are on the same
+  // snapshot; the kit's production id type has no native slot, so they are
+  // not passed into [AdsConfig].
+  final levelPlay = FirebaseService.instance.freezeLevelPlayPlacements();
+  final interstitialCooldownSeconds = FirebaseService.instance
+      .resolveInterstitialCooldownSeconds();
+
   await GameKit.initialize(
     GameKitConfig(
       locale: persistedLocale,
@@ -129,19 +132,16 @@ Future<void> initializeGameKit(StorageService storage) async {
         // comes from Unity dashboard test mode plus registered test devices.
         adEnvironment: AdUnitEnvironment.prod,
         prodLevelPlayUnitIds: LevelPlayProdUnitIds(
-          // [LevelPlayIds] already resolves per platform, so the same value
-          // goes in both slots and the kit's own pick is a no-op here.
-          appKeyAndroid: LevelPlayIds.appKey,
-          appKeyIos: LevelPlayIds.appKey,
-          interstitialAndroid: LevelPlayIds.interstitial,
-          interstitialIos: LevelPlayIds.interstitial,
-          bannerAndroid: LevelPlayIds.banner,
-          bannerIos: LevelPlayIds.banner,
-          rewardedAndroid: LevelPlayIds.rewarded,
-          rewardedIos: LevelPlayIds.rewarded,
+          appKeyAndroid: levelPlay.appKeyAndroid,
+          appKeyIos: levelPlay.appKeyIos,
+          interstitialAndroid: levelPlay.interstitialAndroid,
+          interstitialIos: levelPlay.interstitialIos,
+          bannerAndroid: levelPlay.bannerAndroid,
+          bannerIos: levelPlay.bannerIos,
+          rewardedAndroid: levelPlay.rewardedAndroid,
+          rewardedIos: levelPlay.rewardedIos,
         ),
-        interstitialMaxPerSession: 8,
-        interstitialCooldownSeconds: 40,
+        interstitialCooldownSeconds: interstitialCooldownSeconds,
         // Handed to the kit rather than checked at each call site, so a
         // switched-off build still reaches the kit's *capped* free grant
         // instead of leaving the free-coins button dead. Reads Remote Config

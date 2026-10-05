@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:game_kit/game_kit.dart';
 
 import '../const/remote_config_keys.dart';
+import '../core/config/level_play_ids.dart';
 
 enum RemoteConfigEntrySource { staticValue, defaultValue, remoteValue }
 
@@ -145,6 +146,7 @@ class FirebaseService {
   Future<void>? _initFuture;
   Future<void>? _refreshFuture;
   StreamSubscription<void>? _realtimeSubscription;
+  LevelPlayPlacementIds? _levelPlayPlacements;
 
   /// True once cached, fetched, or default Remote Config values are usable.
   bool get isReady => _ready && _remoteConfig != null;
@@ -271,6 +273,139 @@ class FirebaseService {
     return raw != 'false' && raw != '0' && raw != 'no';
   }
 
+  /// Published cooldown, or [defaultValue] when the host console has not set one.
+  ///
+  /// A published `0` is kept. The kit still prefers a kit-project value when
+  /// this host key is unset, because [readForKit] does not invent `40`.
+  int resolveInterstitialCooldownSeconds({int defaultValue = 40}) {
+    return getInt(
+      RemoteConfigKeys.interstitialCooldownSeconds,
+      defaultValue: defaultValue,
+    );
+  }
+
+  /// LevelPlay ids for [AdsConfig], frozen on the first call.
+  ///
+  /// The LevelPlay SDK takes its app key and unit ids at init and cannot be
+  /// re-keyed, so a later console publish waits for the next cold start.
+  LevelPlayPlacementIds freezeLevelPlayPlacements() {
+    return _levelPlayPlacements ??= resolveLevelPlayPlacements();
+  }
+
+  /// Published LevelPlay ids, falling back to [fallback] per field.
+  ///
+  /// Native ids are included even though [LevelPlayProdUnitIds] has no native
+  /// slot: they stay on this snapshot so a published native unit is not dropped.
+  LevelPlayPlacementIds resolveLevelPlayPlacements({
+    LevelPlayPlacementIds fallback = LevelPlayIds.placements,
+  }) {
+    return LevelPlayPlacementIds(
+      appKeyAndroid: getString(
+        RemoteConfigKeys.levelPlayAppKeyAndroid,
+        defaultValue: fallback.appKeyAndroid,
+      ),
+      appKeyIos: getString(
+        RemoteConfigKeys.levelPlayAppKeyIos,
+        defaultValue: fallback.appKeyIos,
+      ),
+      bannerAndroid: getString(
+        RemoteConfigKeys.levelPlayAndroidBannerId,
+        defaultValue: fallback.bannerAndroid,
+      ),
+      bannerIos: getString(
+        RemoteConfigKeys.levelPlayIosBannerId,
+        defaultValue: fallback.bannerIos,
+      ),
+      interstitialAndroid: getString(
+        RemoteConfigKeys.levelPlayAndroidInterstitialId,
+        defaultValue: fallback.interstitialAndroid,
+      ),
+      interstitialIos: getString(
+        RemoteConfigKeys.levelPlayIosInterstitialId,
+        defaultValue: fallback.interstitialIos,
+      ),
+      rewardedAndroid: getString(
+        RemoteConfigKeys.levelPlayAndroidRewardedId,
+        defaultValue: fallback.rewardedAndroid,
+      ),
+      rewardedIos: getString(
+        RemoteConfigKeys.levelPlayIosRewardedId,
+        defaultValue: fallback.rewardedIos,
+      ),
+      nativeAndroid: getString(
+        RemoteConfigKeys.levelPlayAndroidNativeId,
+        defaultValue: fallback.nativeAndroid,
+      ),
+      nativeIos: getString(
+        RemoteConfigKeys.levelPlayIosNativeId,
+        defaultValue: fallback.nativeIos,
+      ),
+    );
+  }
+
+  String resolveMinRequiredVersion({String defaultValue = ''}) {
+    return readForKit(
+      RemoteConfigKeys.minRequiredVersion,
+      defaultValue: defaultValue,
+    );
+  }
+
+  String resolveAndroidStoreUrl({String defaultValue = ''}) {
+    return readForKit(
+      RemoteConfigKeys.androidStoreUrl,
+      defaultValue: defaultValue,
+    );
+  }
+
+  String resolveIosStoreUrl({String defaultValue = ''}) {
+    return readForKit(RemoteConfigKeys.iosStoreUrl, defaultValue: defaultValue);
+  }
+
+  String resolveNewAndroidStoreUrl({String defaultValue = ''}) {
+    return readForKit(
+      RemoteConfigKeys.newAndroidStoreUrl,
+      defaultValue: defaultValue,
+    );
+  }
+
+  String resolveNewIosStoreUrl({String defaultValue = ''}) {
+    return readForKit(
+      RemoteConfigKeys.newIosStoreUrl,
+      defaultValue: defaultValue,
+    );
+  }
+
+  /// Published host value for a kit read.
+  ///
+  /// Local defaults stay hidden. A non-empty string here overrides the kit
+  /// Firebase project, so an unset key must come back empty.
+  String readForKit(String key, {String defaultValue = ''}) {
+    return switch (key) {
+      RemoteConfigKeys.adsEnabled ||
+      RemoteConfigKeys.interstitialCooldownSeconds ||
+      RemoteConfigKeys.levelPlayAppKeyAndroid ||
+      RemoteConfigKeys.levelPlayAppKeyIos ||
+      RemoteConfigKeys.levelPlayAndroidBannerId ||
+      RemoteConfigKeys.levelPlayAndroidInterstitialId ||
+      RemoteConfigKeys.levelPlayAndroidRewardedId ||
+      RemoteConfigKeys.levelPlayAndroidNativeId ||
+      RemoteConfigKeys.levelPlayIosBannerId ||
+      RemoteConfigKeys.levelPlayIosInterstitialId ||
+      RemoteConfigKeys.levelPlayIosRewardedId ||
+      RemoteConfigKeys.levelPlayIosNativeId ||
+      RemoteConfigKeys.minRequiredVersion ||
+      RemoteConfigKeys.androidStoreUrl ||
+      RemoteConfigKeys.iosStoreUrl ||
+      RemoteConfigKeys.showAppMoved ||
+      RemoteConfigKeys.newAndroidStoreUrl ||
+      RemoteConfigKeys.newIosStoreUrl => getString(
+        key,
+        defaultValue: defaultValue,
+      ),
+      _ => getString(key, defaultValue: defaultValue),
+    };
+  }
+
   /// Remote Config app-moved flag. Missing, default, and malformed values are
   /// treated as off; only a published truthy value blocks the old listing.
   bool resolveAppMoved() {
@@ -340,17 +475,27 @@ class FirebaseService {
 /// concrete bodies that parse [getString], and `implements` would not inherit
 /// them, so this class would have to hand-roll the same two parsers.
 class YallaRemoteConfigAdapter extends GameKitRemoteConfig {
-  const YallaRemoteConfigAdapter();
+  const YallaRemoteConfigAdapter([this._service]);
+
+  final FirebaseService? _service;
+
+  FirebaseService get _firebase => _service ?? FirebaseService.instance;
 
   @override
-  bool get isReady => FirebaseService.instance.isReady;
+  bool get isReady => _firebase.isReady;
 
   @override
   String getString(String key, {String defaultValue = ''}) {
-    return FirebaseService.instance.getString(key, defaultValue: defaultValue);
+    return _firebase.readForKit(key, defaultValue: defaultValue);
   }
 
   @override
-  int getInt(String key, {required int defaultValue}) =>
-      FirebaseService.instance.getInt(key, defaultValue: defaultValue);
+  int getInt(String key, {required int defaultValue}) {
+    if (key == RemoteConfigKeys.interstitialCooldownSeconds) {
+      return _firebase.resolveInterstitialCooldownSeconds(
+        defaultValue: defaultValue,
+      );
+    }
+    return _firebase.getInt(key, defaultValue: defaultValue);
+  }
 }

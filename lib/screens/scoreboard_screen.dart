@@ -222,6 +222,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                             height: AppSpacing.buttonHeight(context),
                             child: ElevatedButton(
                               onPressed: () {
+                                GameFeedback.tap();
                                 game.resetGame();
                                 Navigator.pushAndRemoveUntil(
                                   context,
@@ -244,6 +245,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                             onPressed: _adShowing
                                 ? null
                                 : () {
+                                    GameFeedback.tap();
                                     Navigator.pushAndRemoveUntil(
                                       context,
                                       MaterialPageRoute(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/category.dart';
+import '../services/game_feedback.dart';
 import '../theme/app_theme.dart';
 
 class CategoryCard extends StatelessWidget {
@@ -40,7 +41,10 @@ class CategoryCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        onTap: onTap,
+        onTap: () {
+          GameFeedback.tap();
+          onTap();
+        },
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.lg),

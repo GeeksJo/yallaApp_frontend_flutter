@@ -3,6 +3,7 @@ import 'package:game_kit/game_kit.dart';
 import 'package:yalla/l10n/app_localizations.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/feedback_back_button.dart';
 import '../widgets/responsive_layout.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -15,6 +16,7 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const FeedbackBackButton(),
         title: Text(
           l10n.settings,
           style: TextStyle(

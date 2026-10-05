@@ -596,6 +596,7 @@ class _QuestionScreenState extends State<QuestionScreen>
   }
 
   void _showPauseMenu() {
+    GameFeedback.tap();
     _togglePause();
     final l10n = AppLocalizations.of(context)!;
     final isFreeForAll =
@@ -666,6 +667,7 @@ class _QuestionScreenState extends State<QuestionScreen>
                       height: isPad ? 62.0 : 54,
                       child: ElevatedButton(
                         onPressed: () {
+                          GameFeedback.tap();
                           Navigator.pop(dialogContext);
                           _togglePause();
                         },
@@ -691,6 +693,7 @@ class _QuestionScreenState extends State<QuestionScreen>
                         height: isPad ? 62.0 : 54,
                         child: OutlinedButton(
                           onPressed: () {
+                            GameFeedback.tap();
                             Navigator.pop(dialogContext);
                             _exitToPlayerSetup();
                           },
@@ -725,6 +728,7 @@ class _QuestionScreenState extends State<QuestionScreen>
                       height: isPad ? 62.0 : 54,
                       child: OutlinedButton(
                         onPressed: () async {
+                          GameFeedback.tap();
                           Navigator.pop(dialogContext);
                           final nav = Navigator.of(context);
                           if (!mounted) return;

@@ -44,7 +44,6 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       return;
     }
 
-    GameFeedback.success();
     setState(() {
       if (_selected.contains(category.key)) {
         _selected.remove(category.key);
@@ -131,6 +130,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
               onChanged: (v) => context
                   .read<GameSettingsProvider>()
                   .setQuestionTimerSeconds(v.round()),
+              onChangeEnd: (_) => GameFeedback.tap(),
             ),
           ),
         ],
@@ -139,6 +139,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   }
 
   void _onStart() {
+    GameFeedback.tap();
     final game = context.read<GameProvider>();
     if (game.players.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -210,7 +211,10 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                             color: AppColors.textPrimary,
                             size: isTablet ? 28 : 22,
                           ),
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            GameFeedback.tap();
+                            Navigator.pop(context);
+                          },
                         ),
                         Expanded(
                           child: Text(

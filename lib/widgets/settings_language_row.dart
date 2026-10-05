@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:yalla/l10n/app_localizations.dart';
 
 import '../providers/locale_provider.dart';
+import '../services/game_feedback.dart';
 import '../theme/app_theme.dart';
 import 'responsive_layout.dart';
 
@@ -83,7 +84,10 @@ class _LocaleChoice extends StatelessWidget {
           ),
         ),
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            GameFeedback.tap();
+            onTap();
+          },
           borderRadius: BorderRadius.circular(AppRadius.pill),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),

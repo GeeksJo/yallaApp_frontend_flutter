@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yalla/const/remote_config_keys.dart';
+import 'package:yalla/core/config/level_play_ids.dart';
 import 'package:yalla/services/firebase_service.dart';
 
 /// The ads kill switch, and what happens before Firebase is configured.
@@ -199,6 +200,106 @@ void main() {
       expect(service.adsEnabled.value, isFalse);
       expect(service.revision.value, greaterThan(initialRevision));
     });
+
+    test('level play ids fall back until a unit id is published', () async {
+      await service.initialize();
+      remoteConfig.completeFetch();
+
+      final placements = service.resolveLevelPlayPlacements();
+
+      expect(placements.bannerAndroid, LevelPlayIds.bannerAndroid);
+      expect(placements.bannerIos, LevelPlayIds.bannerIos);
+      expect(placements.interstitialAndroid, LevelPlayIds.interstitialAndroid);
+      expect(placements.interstitialIos, LevelPlayIds.interstitialIos);
+      expect(placements.rewardedAndroid, LevelPlayIds.rewardedAndroid);
+      expect(placements.rewardedIos, LevelPlayIds.rewardedIos);
+      expect(placements.nativeAndroid, LevelPlayIds.nativeAndroid);
+      expect(placements.nativeIos, LevelPlayIds.nativeIos);
+      expect(placements.appKeyAndroid, LevelPlayIds.appKeyAndroid);
+      expect(placements.appKeyIos, LevelPlayIds.appKeyIos);
+      expect(
+        service.readForKit(RemoteConfigKeys.levelPlayAndroidBannerId),
+        isEmpty,
+        reason: 'an unset unit id must not mask a later kit read',
+      );
+    });
+
+    test('published level play ids replace one field and freeze', () async {
+      remoteConfig.setRemote(
+        RemoteConfigKeys.levelPlayAndroidBannerId,
+        'remote-banner',
+      );
+      remoteConfig.setRemote(RemoteConfigKeys.levelPlayIosNativeId, '  ');
+      remoteConfig.setRemote(RemoteConfigKeys.levelPlayAppKeyIos, 'ios-key');
+
+      await service.initialize();
+      remoteConfig.completeFetch();
+
+      final frozen = service.freezeLevelPlayPlacements();
+      expect(frozen.bannerAndroid, 'remote-banner');
+      expect(frozen.bannerIos, LevelPlayIds.bannerIos);
+      expect(frozen.nativeIos, LevelPlayIds.nativeIos);
+      expect(frozen.appKeyIos, 'ios-key');
+      expect(frozen.appKeyAndroid, LevelPlayIds.appKeyAndroid);
+
+      remoteConfig.setRemote(
+        RemoteConfigKeys.levelPlayAndroidBannerId,
+        'later-banner',
+      );
+      expect(
+        service.freezeLevelPlayPlacements().bannerAndroid,
+        'remote-banner',
+      );
+      expect(
+        service.resolveLevelPlayPlacements().bannerAndroid,
+        'later-banner',
+      );
+    });
+
+    test(
+      'force update and app moved urls come from published strings',
+      () async {
+        remoteConfig.setRemote(RemoteConfigKeys.minRequiredVersion, '9.0.0');
+        remoteConfig.setRemote(
+          RemoteConfigKeys.androidStoreUrl,
+          'https://play.example/yalla',
+        );
+        remoteConfig.setRemote(
+          RemoteConfigKeys.iosStoreUrl,
+          'https://apps.example/yalla',
+        );
+        remoteConfig.setRemote(
+          RemoteConfigKeys.newAndroidStoreUrl,
+          'https://play.example/next',
+        );
+        remoteConfig.setRemote(
+          RemoteConfigKeys.newIosStoreUrl,
+          'https://apps.example/next',
+        );
+
+        await service.initialize();
+        remoteConfig.completeFetch();
+
+        final adapter = YallaRemoteConfigAdapter(service);
+        expect(service.resolveMinRequiredVersion(), '9.0.0');
+        expect(adapter.getString(RemoteConfigKeys.minRequiredVersion), '9.0.0');
+        expect(
+          adapter.getString(RemoteConfigKeys.androidStoreUrl),
+          'https://play.example/yalla',
+        );
+        expect(
+          adapter.getString(RemoteConfigKeys.iosStoreUrl),
+          'https://apps.example/yalla',
+        );
+        expect(adapter.getString(RemoteConfigKeys.showAppMoved), isEmpty);
+        expect(
+          service.resolveNewAndroidStoreUrl(),
+          'https://play.example/next',
+        );
+        expect(service.resolveNewIosStoreUrl(), 'https://apps.example/next');
+        expect(service.resolveInterstitialCooldownSeconds(), 40);
+      },
+    );
 
     test('refresh calls are coalesced', () async {
       await service.initialize();
