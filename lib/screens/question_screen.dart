@@ -10,6 +10,9 @@ import '../providers/coin_provider.dart';
 import '../providers/game_provider.dart';
 import '../providers/game_settings_provider.dart';
 import '../providers/locale_provider.dart';
+import '../services/countdown_urgency_policy.dart';
+import '../services/emergency_block_notice.dart';
+import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
 import '../services/storage_service.dart';
 import '../services/game_kit_products.dart';
@@ -32,7 +35,7 @@ class QuestionScreen extends StatefulWidget {
 }
 
 class _QuestionScreenState extends State<QuestionScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _timerController;
   late AnimationController _turnFlipController;
   bool _answered = false;
@@ -45,8 +48,9 @@ class _QuestionScreenState extends State<QuestionScreen>
   late int _answerSeconds;
   bool _introComplete = false;
   bool _countdownUrgencyActive = false;
+  bool _emergencyBlocked = false;
+  bool _appInBackground = false;
 
-  static const _urgencyWindowSeconds = 3;
   static const _turnFlipDuration = Duration(milliseconds: 680);
   static const _afterTurnFlipPause = Duration(milliseconds: 400);
 
@@ -67,6 +71,7 @@ class _QuestionScreenState extends State<QuestionScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _answerSeconds = context.read<GameSettingsProvider>().questionTimerSeconds;
     _timerController = AnimationController(
       vsync: this,
@@ -76,11 +81,7 @@ class _QuestionScreenState extends State<QuestionScreen>
       vsync: this,
       duration: _turnFlipDuration,
     );
-    _timerController.addStatusListener((status) {
-      if (status == AnimationStatus.completed && !_answered) {
-        _onTimeout();
-      }
-    });
+    _timerController.addStatusListener(_onTimerStatus);
     _timerController.addListener(_onTimerTick);
     final isFFA = context.read<GameProvider>().mode == GameMode.freeForAll;
     if (isFFA) {
@@ -102,32 +103,58 @@ class _QuestionScreenState extends State<QuestionScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final blocked = EmergencyBlockNotice.blockedOf(context);
+    if (blocked == _emergencyBlocked) return;
+    _emergencyBlocked = blocked;
+    _syncCountdownUrgency();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final inBackground = state != AppLifecycleState.resumed;
+    if (inBackground == _appInBackground) return;
+    _appInBackground = inBackground;
+    _syncCountdownUrgency();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timerController.removeListener(_onTimerTick);
+    _timerController.removeStatusListener(_onTimerStatus);
+    _countdownUrgencyActive = false;
     unawaited(GameKit.sounds.stopCountdownUrgency());
     _timerController.dispose();
     _turnFlipController.dispose();
     super.dispose();
   }
 
+  void _onTimerStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed && !_answered) {
+      _onTimeout();
+    }
+  }
+
   void _onTimerTick() => _syncCountdownUrgency();
 
   void _syncCountdownUrgency() {
-    if (_answered || _paused || !_introComplete) {
-      _stopCountdownUrgency();
-      return;
-    }
-    if (_answerSeconds <= 5) {
-      _stopCountdownUrgency();
-      return;
-    }
     final remaining =
         _answerSeconds - (_timerController.value * _answerSeconds);
-    final inWindow = remaining <= _urgencyWindowSeconds;
-    if (inWindow && !_countdownUrgencyActive) {
+    final shouldPlay = CountdownUrgencyPolicy.shouldPlay(
+      answered: _answered,
+      paused: _paused,
+      introComplete: _introComplete,
+      emergencyBlocked: _emergencyBlocked,
+      inBackground: _appInBackground,
+      answerSeconds: _answerSeconds,
+      remainingSeconds: remaining,
+    );
+    if (shouldPlay && !_countdownUrgencyActive) {
       _countdownUrgencyActive = true;
       unawaited(GameKit.sounds.startCountdownUrgency());
-    } else if (!inWindow && _countdownUrgencyActive) {
+    } else if (!shouldPlay) {
       _stopCountdownUrgency();
     }
   }
@@ -511,14 +538,14 @@ class _QuestionScreenState extends State<QuestionScreen>
 
   void _openOtherGames() {
     if (_answered || _paused || _turnFlipping || !_introComplete) return;
-    GameKit.haptics.lightTap();
+    GameFeedback.tap();
     unawaited(showAppCrossPromoSheet(context));
   }
 
   Future<void> _removeAdsFromHeader() async {
     if (_answered || _paused || _turnFlipping || !_introComplete) return;
     if (GameKit.iap.adsRemoved.value) return;
-    GameKit.haptics.lightTap();
+    GameFeedback.tap();
 
     final l10n = AppLocalizations.of(context)!;
     final price = GameKit.iap.getFormattedPrice(GameKitProducts.removeAds);
@@ -548,11 +575,10 @@ class _QuestionScreenState extends State<QuestionScreen>
       _paused = !_paused;
       if (_paused) {
         _timerController.stop();
-        _stopCountdownUrgency();
       } else {
         _timerController.forward();
-        _syncCountdownUrgency();
       }
+      _syncCountdownUrgency();
     });
   }
 
@@ -753,8 +779,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     final coinProvider = context.read<CoinProvider>();
     final isGameOver = game.answerCorrect();
     coinProvider.addCoins(1);
-    GameKit.sounds.validAction();
-    GameKit.haptics.validAction();
+    GameFeedback.success();
     unawaited(_notifyRatingAfterCorrectAnswer());
 
     unawaited(
@@ -778,8 +803,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     if (_answered || _turnFlipping) return;
     _answered = true;
     _stopCountdownUrgency();
-    GameKit.sounds.invalidAction();
-    GameKit.haptics.invalidAction();
+    GameFeedback.failure();
 
     final game = context.read<GameProvider>();
     final locale = context.read<LocaleProvider>().locale.languageCode;
@@ -854,7 +878,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     required String prevQuestionText,
   }) {
     if (_turnFlipping) return;
-    GameKit.haptics.milestoneSuccess();
+    GameFeedback.completion();
     setState(() {
       _turnFlipping = true;
       _flipFrom = prevFlip;

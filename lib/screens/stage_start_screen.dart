@@ -7,6 +7,7 @@ import 'package:yalla/l10n/app_localizations.dart';
 
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
+import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
 import '../theme/app_theme.dart';
 import '../widgets/responsive_layout.dart';
@@ -77,7 +78,7 @@ class _StageStartScreenState extends State<StageStartScreen>
   }
 
   void _onComplete() {
-    GameKit.haptics.milestoneSuccess();
+    GameFeedback.completion();
     if (!mounted) return;
     final game = context.read<GameProvider>();
     if (game.players.isEmpty) {

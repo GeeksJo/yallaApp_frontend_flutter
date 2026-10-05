@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_kit/game_kit.dart';
+import '../services/game_feedback.dart';
 import '../theme/app_theme.dart';
 import 'responsive_layout.dart';
 
@@ -40,8 +40,7 @@ class _RedButtonState extends State<RedButton> {
     if (!widget.enabled) return;
     if (_tapLocked) return;
     _tapLocked = true;
-    GameKit.sounds.lightTap();
-    GameKit.haptics.lightTap();
+    GameFeedback.tap();
     widget.onPressed();
     Future<void>.delayed(const Duration(milliseconds: 220), () {
       _tapLocked = false;
@@ -52,8 +51,7 @@ class _RedButtonState extends State<RedButton> {
 
   @override
   Widget build(BuildContext context) {
-    final d = widget.diameter ??
-        ResponsiveLayout.redButtonDiameter(context);
+    final d = widget.diameter ?? ResponsiveLayout.redButtonDiameter(context);
     final fontSize = (18 * (d / _defaultDiameter)).clamp(16.0, 28.0);
 
     return Semantics(

@@ -6,6 +6,7 @@ import 'package:yalla/l10n/app_localizations.dart';
 
 import '../models/player.dart';
 import '../providers/game_provider.dart';
+import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
 import '../theme/app_theme.dart';
 import '../widgets/player_score_tile.dart';
@@ -39,11 +40,10 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
     if (widget.debugRankedPlayers != null) {
       return;
     }
-    if (GameKit.iap.adsRemoved.value) {
-      return;
-    }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      GameFeedback.completion();
+      if (GameKit.iap.adsRemoved.value) return;
       setState(() => _adShowing = true);
       try {
         await GameKit.notifications.onFirstDailyCompletion().timeout(
@@ -56,7 +56,6 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
             failed: widget.adsRoundFailed,
           );
         }
-        GameKit.haptics.milestoneSuccess();
       } finally {
         if (mounted) setState(() => _adShowing = false);
       }

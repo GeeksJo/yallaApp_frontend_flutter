@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:game_kit/game_kit.dart';
 import 'package:yalla/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
+import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
 import '../theme/app_theme.dart';
 import '../widgets/responsive_layout.dart';
@@ -58,8 +58,7 @@ class _PassScreenState extends State<PassScreen>
 
   void _goToNextQuestion() {
     if (!mounted) return;
-    GameKit.sounds.validAction();
-    GameKit.haptics.validAction();
+    GameFeedback.success();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const QuestionScreen()),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:yalla/const/remote_config_keys.dart';
+import 'package:yalla/services/emergency_block_notice.dart';
 import 'package:yalla/services/emergency_gate.dart';
 
 void main() {
@@ -29,6 +30,30 @@ void main() {
     await tester.pump();
 
     expect(find.text('game'), findsNothing);
+    expect(find.text('Ready for Launch?'), findsOneWidget);
+  });
+
+  testWidgets('marks playback blocked while an emergency screen is up', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        remoteConfig: FakeGameKitRemoteConfig(
+          strings: <String, String>{
+            RemoteConfigKeys.minRequiredVersion: '1.0.10',
+          },
+        ),
+        child: Builder(
+          builder: (context) {
+            final blocked = EmergencyBlockNotice.blockedOf(context);
+            return Text(blocked ? 'playback-blocked' : 'playback-live');
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('playback-blocked', skipOffstage: false), findsOneWidget);
     expect(find.text('Ready for Launch?'), findsOneWidget);
   });
 
@@ -76,7 +101,11 @@ void main() {
   });
 }
 
-Widget _app({required GameKitRemoteConfig remoteConfig, Listenable? recheck}) {
+Widget _app({
+  required GameKitRemoteConfig remoteConfig,
+  Listenable? recheck,
+  Widget? child,
+}) {
   return MaterialApp(
     localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
       GameKitLocalizations.delegate,
@@ -85,7 +114,7 @@ Widget _app({required GameKitRemoteConfig remoteConfig, Listenable? recheck}) {
       remoteConfig: remoteConfig,
       recheck: recheck,
       loadCurrentVersion: () async => '1.0.9',
-      child: const Text('game', textDirection: TextDirection.ltr),
+      child: child ?? const Text('game', textDirection: TextDirection.ltr),
     ),
   );
 }

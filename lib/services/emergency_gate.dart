@@ -5,6 +5,7 @@ import 'package:game_kit/game_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../theme/app_theme.dart';
+import 'emergency_block_notice.dart';
 import 'firebase_service.dart';
 
 typedef CurrentVersionLoader = Future<String> Function();
@@ -60,6 +61,7 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
     with WidgetsBindingObserver {
   String _currentVersion = '';
   _EmergencyState _state = _EmergencyState.none;
+  final ValueNotifier<bool> _playbackBlocked = ValueNotifier<bool>(false);
   Future<void>? _checkInFlight;
   bool _checkAgain = false;
   bool _refreshAgain = false;
@@ -89,6 +91,7 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
   void dispose() {
     widget.recheck?.removeListener(_onRecheck);
     WidgetsBinding.instance.removeObserver(this);
+    _playbackBlocked.dispose();
     super.dispose();
   }
 
@@ -178,6 +181,7 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
     }
 
     if (!mounted) return;
+    _playbackBlocked.value = next.block != _EmergencyBlock.none;
     setState(() => _state = next);
   }
 
@@ -212,26 +216,29 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
   @override
   Widget build(BuildContext context) {
     final blocked = _state.block != _EmergencyBlock.none;
-    return Stack(
-      fit: StackFit.expand,
-      children: <Widget>[
-        TickerMode(
-          enabled: !blocked,
-          child: Offstage(offstage: blocked, child: widget.child),
-        ),
-        if (_state.block == _EmergencyBlock.appMoved)
-          AppMovedScreen(
-            config: _appMovedConfig,
-            strings: AppMovedStrings.of(context),
-            status: _state.appMoved,
-          )
-        else if (_state.block == _EmergencyBlock.forceUpdate)
-          ForceUpdateScreen(
-            config: _forceUpdateConfig,
-            strings: _forceUpdateStrings(context),
-            status: _state.forceUpdate,
+    return EmergencyBlockNotice(
+      blocked: _playbackBlocked,
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          TickerMode(
+            enabled: !blocked,
+            child: Offstage(offstage: blocked, child: widget.child),
           ),
-      ],
+          if (_state.block == _EmergencyBlock.appMoved)
+            AppMovedScreen(
+              config: _appMovedConfig,
+              strings: AppMovedStrings.of(context),
+              status: _state.appMoved,
+            )
+          else if (_state.block == _EmergencyBlock.forceUpdate)
+            ForceUpdateScreen(
+              config: _forceUpdateConfig,
+              strings: _forceUpdateStrings(context),
+              status: _state.forceUpdate,
+            ),
+        ],
+      ),
     );
   }
 }

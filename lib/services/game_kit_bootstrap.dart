@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/config/level_play_ids.dart';
 import '../theme/app_theme.dart';
+import 'audio_preference_migration.dart';
 import 'firebase_service.dart';
 import 'game_kit_products.dart';
 import 'storage_service.dart';
@@ -32,12 +33,18 @@ import 'storage_service.dart';
 /// Plain constants rather than ARB lookups because [initializeGameKit] runs
 /// before the localization delegate has loaded.
 const String _aboutDescriptionAr =
-    'يلا: تحدي الثلاثين ثانية. اذكر ثلاثة أشياء قبل ما ينتهي الوقت، '
+    'يلا: اذكر ثلاثة أشياء قبل ما يخلص الوقت. أنت تختار وقت الإجابة لكل جولة. '
     'لعبة سريعة للجلسات مع الأصدقاء والعائلة.';
 
 const String _aboutDescriptionEn =
-    'Yalla: the 30-second challenge. Name three things before time runs out - '
-    'a fast party game for friends and family.';
+    'Yalla: name three things before time runs out. You choose the answer '
+    'time for each round. A fast party game for friends and family.';
+
+/// SFX play through the iOS silent switch. The in-app sound switch is the mute.
+const yallaSoundConfig = SoundConfig(respectSilentMode: false);
+
+/// Vibration follows the kit preference. This config adds no extra gate.
+const yallaHapticsConfig = HapticsConfig();
 
 String _aboutDescriptionFor(Locale locale) =>
     locale.languageCode == 'ar' ? _aboutDescriptionAr : _aboutDescriptionEn;
@@ -70,6 +77,19 @@ void updateGameKitPresentationLocale(Locale locale) {
 
 Future<void> initializeGameKit(StorageService storage) async {
   final persistedLocale = Locale(storage.getLocale());
+  final prefs = await SharedPreferences.getInstance();
+  // Captured before init so a default written during startup is not treated
+  // as a saved player choice that should block legacy migration.
+  final audioMigration = AudioPreferenceMigration.resolve(
+    kitSoundAlreadyStored: prefs.containsKey(
+      AudioPreferenceMigration.soundsEnabledKey,
+    ),
+    kitVibrationAlreadyStored: prefs.containsKey(
+      AudioPreferenceMigration.vibrationsEnabledKey,
+    ),
+    legacySound: storage.getLegacySoundEnabledOrNull(),
+    legacyHaptics: storage.getLegacyHapticsEnabledOrNull(),
+  );
 
   // LevelPlay ids are compiled in, so rewarded is always configured. The old
   // `.env` plumbing meant rewarded silently never loaded whenever `.env` was
@@ -162,13 +182,17 @@ Future<void> initializeGameKit(StorageService storage) async {
       storage: const StorageConfig(
         backend: GameKitStoreBackend.sharedPreferences,
       ),
-      sound: const SoundConfig(respectSilentMode: false),
-      haptics: const HapticsConfig(),
+      sound: yallaSoundConfig,
+      haptics: yallaHapticsConfig,
       crossPromoAppIdentifier: 'com.majoon.yalla',
     ),
   );
 
-  await _migrateAudioHapticsPreferences(storage);
+  await applyAudioPreferenceMigration(
+    audioMigration,
+    setSoundsEnabled: GameKit.preferences.setSoundsEnabled,
+    setVibrationsEnabled: GameKit.preferences.setVibrationsEnabled,
+  );
 
   // `preloadAds` brings the network up and warms both formats, so there is no
   // separate init call and no rewarded-enabled branch to get wrong.
@@ -177,26 +201,6 @@ Future<void> initializeGameKit(StorageService storage) async {
   await _migrateLegacyDonationTotal(storage);
   await _prefetchIapCatalog();
   GameKitAdBridge.attach();
-}
-
-/// Copies legacy host audio toggles into package-owned preferences once.
-Future<void> _migrateAudioHapticsPreferences(StorageService storage) async {
-  const kitSoundKey = 'game_kit.preferences.soundsEnabled';
-  const kitVibrationKey = 'game_kit.preferences.vibrationsEnabled';
-
-  final prefs = await SharedPreferences.getInstance();
-  if (!prefs.containsKey(kitSoundKey)) {
-    final legacy = storage.getLegacySoundEnabledOrNull() ?? true;
-    await GameKit.preferences.setSoundsEnabled(legacy);
-  }
-
-  if (!prefs.containsKey(kitVibrationKey)) {
-    final legacy =
-        storage.getLegacyHapticsEnabledOrNull() ??
-        storage.getLegacySoundEnabledOrNull() ??
-        true;
-    await GameKit.preferences.setVibrationsEnabled(legacy);
-  }
 }
 
 /// Moves `StorageService` donation total into [GameKit.iap] once, if present.

@@ -9,8 +9,11 @@ void main() {
     final english = buildYallaGameKitSettingsUiConfig(const Locale('en'));
     final arabic = buildYallaGameKitSettingsUiConfig(const Locale('ar'));
 
-    expect(english.aboutDescription, contains('30-second challenge'));
-    expect(arabic.aboutDescription, contains('تحدي الثلاثين ثانية'));
+    expect(english.aboutDescription, contains('answer time'));
+    expect(english.aboutDescription, isNot(contains('30')));
+    expect(arabic.aboutDescription, contains('وقت الإجابة'));
+    expect(arabic.aboutDescription, isNot(contains('ثلاثين')));
+    expect(english.aboutDescription, isNot(arabic.aboutDescription));
     expect(english.showCrossPromo, isTrue);
     expect(arabic.fontFamily, english.fontFamily);
   });
@@ -29,5 +32,10 @@ void main() {
     await legacyStorage.init();
 
     expect(legacyStorage.getLegacyHapticsEnabledOrNull(), isFalse);
+  });
+
+  test('sounds ignore the silent switch and haptics add no host gate', () {
+    expect(yallaSoundConfig.respectSilentMode, isFalse);
+    expect(yallaHapticsConfig.isEnabled, isNull);
   });
 }

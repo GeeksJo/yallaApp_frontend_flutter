@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:game_kit/game_kit.dart';
 import 'package:yalla/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../models/category.dart';
@@ -12,6 +11,7 @@ import '../widgets/app_bottom_banner_slot.dart';
 import '../widgets/category_card.dart';
 import '../widgets/locked_category_sheet.dart';
 import '../widgets/responsive_layout.dart';
+import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
 import 'stage_start_screen.dart';
 
@@ -44,7 +44,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       return;
     }
 
-    GameKit.haptics.validAction();
+    GameFeedback.success();
     setState(() {
       if (_selected.contains(category.key)) {
         _selected.remove(category.key);
@@ -257,7 +257,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                         ),
                         child: GestureDetector(
                           onTap: () {
-                            GameKit.haptics.lightTap();
+                            GameFeedback.tap();
                             setState(() => _selectedRounds = n);
                           },
                           child: AnimatedContainer(

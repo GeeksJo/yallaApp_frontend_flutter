@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:yalla/l10n/app_localizations.dart';
@@ -565,29 +563,10 @@ class _HomeFooterActions extends StatelessWidget {
   }
 }
 
-class _SettingsTopChip extends StatefulWidget {
+class _SettingsTopChip extends StatelessWidget {
   final VoidCallback onTap;
 
   const _SettingsTopChip({required this.onTap});
-
-  @override
-  State<_SettingsTopChip> createState() => _SettingsTopChipState();
-}
-
-class _SettingsTopChipState extends State<_SettingsTopChip> {
-  StreamSubscription<bool>? _crossPromoSub;
-
-  @override
-  void initState() {
-    super.initState();
-    _crossPromoSub = GameKit.crossPromo.hasNewGameChanges.listen((show) {});
-  }
-
-  @override
-  void dispose() {
-    unawaited(_crossPromoSub?.cancel());
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -603,7 +582,7 @@ class _SettingsTopChipState extends State<_SettingsTopChip> {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(AppRadius.pill),
-            onTap: widget.onTap,
+            onTap: onTap,
             child: Ink(
               padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
               decoration: BoxDecoration(

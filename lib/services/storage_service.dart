@@ -45,11 +45,6 @@ class StorageService {
 
   Future<void> setLocale(String locale) => _prefs.setString(_localeKey, locale);
 
-  bool getHapticsEnabled() => _prefs.getBool(_hapticsKey) ?? true;
-
-  Future<void> setHapticsEnabled(bool enabled) =>
-      _prefs.setBool(_hapticsKey, enabled);
-
   /// Legacy [sound_enabled] value for one-time migration into GameKit preferences.
   bool? getLegacySoundEnabledOrNull() {
     if (!_prefs.containsKey(_legacySoundKey)) return null;

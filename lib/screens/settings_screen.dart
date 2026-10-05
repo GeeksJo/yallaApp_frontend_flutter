@@ -30,10 +30,8 @@ class SettingsScreen extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         decoration: AppDecorations.gradientBg,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 16),
-          child: const GameKitSettingsBody(),
-        ),
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: GameKitSettingsBody(),
       ),
     );
   }
