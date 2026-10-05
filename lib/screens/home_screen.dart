@@ -6,6 +6,7 @@ import '../models/game_state.dart';
 import '../providers/locale_provider.dart';
 import '../providers/game_provider.dart';
 import '../services/game_feedback.dart';
+import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bottom_banner_slot.dart';
 import '../widgets/app_cross_promo.dart';
@@ -166,7 +167,8 @@ class _HomePortraitScrollBody extends StatelessWidget {
                       _SettingsTopChip(
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          yallaPage(
+                            name: YallaRoute.settings,
                             builder: (_) => const SettingsScreen(),
                           ),
                         ),
@@ -297,7 +299,8 @@ class _HomeLandscapeBody extends StatelessWidget {
                       _SettingsTopChip(
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          yallaPage(
+                            name: YallaRoute.settings,
                             builder: (_) => const SettingsScreen(),
                           ),
                         ),
@@ -423,7 +426,8 @@ class _HomeModeButtons extends StatelessWidget {
                 );
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  yallaPage(
+                    name: YallaRoute.categories,
                     builder: (_) => const CategorySelectionScreen(),
                   ),
                 );
@@ -444,7 +448,10 @@ class _HomeModeButtons extends StatelessWidget {
                 context.read<GameProvider>().setMode(GameMode.freeForAll);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const PlayerSetupScreen()),
+                  yallaPage(
+                    name: YallaRoute.playerSetup,
+                    builder: (_) => const PlayerSetupScreen(),
+                  ),
                 );
               },
             ),
@@ -469,7 +476,8 @@ class _HomeModeButtons extends StatelessWidget {
             );
             Navigator.push(
               context,
-              MaterialPageRoute(
+              yallaPage(
+                name: YallaRoute.categories,
                 builder: (_) => const CategorySelectionScreen(),
               ),
             );
@@ -488,7 +496,10 @@ class _HomeModeButtons extends StatelessWidget {
             context.read<GameProvider>().setMode(GameMode.freeForAll);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const PlayerSetupScreen()),
+              yallaPage(
+                name: YallaRoute.playerSetup,
+                builder: (_) => const PlayerSetupScreen(),
+              ),
             );
           },
         ),
@@ -537,7 +548,10 @@ class _HomeFooterActions extends StatelessWidget {
             GameFeedback.tap();
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const HowToPlayScreen()),
+              yallaPage(
+                name: YallaRoute.howToPlay,
+                builder: (_) => const HowToPlayScreen(),
+              ),
             );
           },
           icon: Icon(

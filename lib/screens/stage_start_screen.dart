@@ -9,6 +9,7 @@ import '../models/game_state.dart';
 import '../providers/game_provider.dart';
 import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
+import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import '../widgets/responsive_layout.dart';
 import 'home_screen.dart';
@@ -84,14 +85,17 @@ class _StageStartScreenState extends State<StageStartScreen>
     if (game.players.isEmpty) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        yallaPage(name: YallaRoute.home, builder: (_) => const HomeScreen()),
         (route) => false,
       );
       return;
     }
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const QuestionScreen()),
+      yallaPage(
+        name: YallaRoute.question,
+        builder: (_) => const QuestionScreen(),
+      ),
     );
   }
 

@@ -17,6 +17,7 @@ import '../services/game_kit_bootstrap.dart';
 import '../services/rating_moment.dart';
 import '../services/storage_service.dart';
 import '../services/game_kit_products.dart';
+import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import '../widgets/countdown_timer.dart';
 import '../widgets/app_bottom_banner_slot.dart';
@@ -93,6 +94,14 @@ class _QuestionScreenState extends State<QuestionScreen>
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      final game = context.read<GameProvider>();
+      if (game.players.isNotEmpty &&
+          yallaSessionShouldStart(
+            round: game.currentRound,
+            playerIndex: game.currentPlayerIndex,
+          )) {
+        unawaited(yallaSessionStarted(game.selectedCategories));
+      }
       unawaited(GameKit.notifications.markPlayedToday());
       GameKitAdBridge.preloadAds();
       if (isFFA) {
@@ -552,6 +561,12 @@ class _QuestionScreenState extends State<QuestionScreen>
     if (_answered || _paused || _turnFlipping || !_introComplete) return;
     if (GameKit.iap.adsRemoved.value) return;
     GameFeedback.tap();
+    unawaited(
+      GameAnalytics.logIapOfferShown(
+        productId: GameKitProducts.removeAds,
+        source: GameAnalyticsKeys.sourceHudIcon,
+      ),
+    );
 
     final l10n = AppLocalizations.of(context)!;
     final price = GameKit.iap.getFormattedPrice(GameKitProducts.removeAds);
@@ -588,9 +603,10 @@ class _QuestionScreenState extends State<QuestionScreen>
     });
   }
 
-  Future<void> _abandonMatch() {
-    if (!RatingMoment.abandoned.recordFailure) return Future<void>.value();
-    return GameKit.rating.levelFailed();
+  Future<void> _abandonMatch() async {
+    yallaSessionAbandoned();
+    if (!RatingMoment.abandoned.recordFailure) return;
+    await GameKit.rating.levelFailed();
   }
 
   Future<void> _exitToPlayerSetup() async {
@@ -603,7 +619,10 @@ class _QuestionScreenState extends State<QuestionScreen>
         .toList();
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => PlayerSetupScreen(initialNames: names)),
+      yallaPage(
+        name: YallaRoute.playerSetup,
+        builder: (_) => PlayerSetupScreen(initialNames: names),
+      ),
       (route) => route.isFirst,
     );
   }
@@ -747,7 +766,8 @@ class _QuestionScreenState extends State<QuestionScreen>
                           if (!mounted) return;
                           final nav = Navigator.of(context);
                           nav.pushAndRemoveUntil(
-                            MaterialPageRoute(
+                            yallaPage(
+                              name: YallaRoute.home,
                               builder: (_) => const HomeScreen(),
                             ),
                             (route) => false,
@@ -873,9 +893,12 @@ class _QuestionScreenState extends State<QuestionScreen>
     }
 
     if (isGameOver) {
+      await yallaSessionCompleted();
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
+        yallaPage(
+          name: YallaRoute.scoreboard,
           builder: (_) => ScoreboardScreen(
             adsRoundFailed: roundFailed,
             ratingLevel: moment.offerOnResults ? ratingLevel : null,
@@ -893,10 +916,7 @@ class _QuestionScreenState extends State<QuestionScreen>
       );
       if (!mounted) return;
       if (moment.offerOnRoundBoundary && ratingLevel != null) {
-        await GameKitRatingPrompt.presentIfEligible(
-          context,
-          level: ratingLevel,
-        );
+        await presentYallaRatingIfEligible(context, level: ratingLevel);
         if (!mounted) return;
       }
       GameKitAdBridge.preloadAds();
@@ -912,7 +932,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const PassScreen()),
+        yallaPage(name: YallaRoute.pass, builder: (_) => const PassScreen()),
       );
     }
   }
@@ -957,7 +977,7 @@ class _QuestionScreenState extends State<QuestionScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          yallaPage(name: YallaRoute.home, builder: (_) => const HomeScreen()),
           (route) => false,
         );
       });

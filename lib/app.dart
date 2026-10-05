@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:game_kit/game_kit.dart';
 import 'package:yalla/l10n/app_localizations.dart';
 import 'package:yalla/l10n/yalla_game_kit_localizations.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import 'services/app_navigator.dart';
 import 'services/emergency_gate.dart';
 import 'services/firebase_service.dart';
 import 'services/game_kit_bootstrap.dart';
+import 'services/yalla_analytics.dart';
 import 'theme/app_theme.dart';
 
 class YallaApp extends StatefulWidget {
@@ -57,6 +59,9 @@ class _YallaAppState extends State<YallaApp> with WidgetsBindingObserver {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
+      ],
+      navigatorObservers: [
+        GameAnalyticsNavigatorObserver(names: yallaScreenNames),
       ],
       theme: buildAppTheme(localeProvider.isArabic),
       builder: (context, child) {

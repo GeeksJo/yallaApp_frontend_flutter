@@ -24,8 +24,9 @@ UI: `showCrossPromotionBottomSheet` - tint from required
 `GameKitConfig.crossPromoSheetSeedColor` only (usually match settings
 `seedColor`). Do not pass a color into the function.
 
-More Games analytics go to the **kit** Firebase app (`GameKit.analytics`),
-not host `GameAnalytics`. See [FIREBASE.md](FIREBASE.md).
+More Games analytics go to the host `[DEFAULT]` property through
+`GameAnalytics`, the same destination as the rest of the kit. The named
+`game_kit` Firebase app is Remote Config only. See [ANALYTICS.md](ANALYTICS.md).
 
 ## Known limits
 

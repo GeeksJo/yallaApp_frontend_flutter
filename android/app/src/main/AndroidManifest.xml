@@ -11,6 +11,9 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-1281176583312027~8152616516"/>
+        <meta-data
+            android:name="google_analytics_automatic_screen_reporting_enabled"
+            android:value="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

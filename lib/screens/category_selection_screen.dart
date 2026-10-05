@@ -13,6 +13,7 @@ import '../widgets/locked_category_sheet.dart';
 import '../widgets/responsive_layout.dart';
 import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
+import '../services/yalla_analytics.dart';
 import 'stage_start_screen.dart';
 
 class CategorySelectionScreen extends StatefulWidget {
@@ -152,7 +153,10 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     game.startGame();
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const StageStartScreen()),
+      yallaPage(
+        name: YallaRoute.stageStart,
+        builder: (_) => const StageStartScreen(),
+      ),
     );
   }
 

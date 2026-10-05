@@ -6,6 +6,7 @@ import '../models/game_state.dart';
 import '../providers/game_provider.dart';
 import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
+import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import '../widgets/responsive_layout.dart';
 import 'question_screen.dart';
@@ -61,7 +62,10 @@ class _PassScreenState extends State<PassScreen>
     GameFeedback.success();
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const QuestionScreen()),
+      yallaPage(
+        name: YallaRoute.question,
+        builder: (_) => const QuestionScreen(),
+      ),
     );
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:yalla/l10n/app_localizations.dart';
@@ -5,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/category.dart';
 import '../providers/coin_provider.dart';
 import '../services/game_feedback.dart';
+import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import 'responsive_layout.dart';
 
@@ -120,6 +123,11 @@ class LockedCategorySheet extends StatelessWidget {
             busy: coinProvider.isCoinGrantInFlight,
             isAd: true,
             onTap: () async {
+              if (!GameKit.ads.shouldSkipAdGrantOffer) {
+                unawaited(
+                  GameAnalytics.logAdRewardedOffered(yallaFreeCoinsPlacement),
+                );
+              }
               final AdGrantOutcome outcome = await coinProvider.watchAdForCoins(
                 context,
               );

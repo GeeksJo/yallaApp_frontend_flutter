@@ -87,3 +87,24 @@ iOS has the Push entitlement (`Runner/Runner.entitlements`, `aps-environment`)
 and Background Modes → remote notifications. The APNs key itself is uploaded
 in the host Firebase project (`yalla-f87b1`), not in this repo. Android
 already declares `POST_NOTIFICATIONS`.
+
+## Analytics (external)
+
+Every event, including kit events such as More Games, is sent to the host
+`[DEFAULT]` property (`yalla-f87b1`). The kit's named Firebase app is Remote
+Config only. Automatic screen reporting is off on both platforms so
+`GameAnalyticsNavigatorObserver` is the only `screen_view` source. The stable
+game name is `yalla`.
+
+These console steps are not in the repo:
+
+- GA4 custom dimensions (event scope): `placement`, `tier`, `category_id`,
+  `game_name`, `campaign_id`, `promo_slot`, `source`, `reason`,
+  `app_identifier`, `game_title`, `promoted_package`, `product_id`,
+  `ad_format`, `cooldown_group`.
+- GA4 custom metrics: `impression`, `max_dismissals`, `store_opened`,
+  `campaign_count`, `duration_seconds`.
+- Link the property to BigQuery.
+- DebugView on a device: `adb shell setprop debug.firebase.analytics.app com.majoon.yalla`.
+  Debug builds also print `GameAnalytics:` lines. This has not been checked
+  on a device from this change.

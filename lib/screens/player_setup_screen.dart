@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/game_state.dart';
 import '../providers/game_provider.dart';
 import '../services/game_feedback.dart';
+import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import '../widgets/feedback_back_button.dart';
 import '../widgets/app_bottom_banner_slot.dart';
@@ -237,7 +238,8 @@ class _PlayerSetupScreenState extends State<PlayerSetupScreen> {
                               context.read<GameProvider>().setPlayers(names);
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
+                                yallaPage(
+                                  name: YallaRoute.categories,
                                   builder: (_) =>
                                       const CategorySelectionScreen(),
                                 ),

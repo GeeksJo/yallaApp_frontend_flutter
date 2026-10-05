@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
@@ -8,6 +10,7 @@ import '../models/player.dart';
 import '../providers/game_provider.dart';
 import '../services/game_feedback.dart';
 import '../services/game_kit_bootstrap.dart';
+import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import '../widgets/player_score_tile.dart';
 import '../widgets/responsive_layout.dart';
@@ -67,7 +70,7 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
       }
       final level = widget.ratingLevel;
       if (level == null || !mounted) return;
-      await GameKitRatingPrompt.presentIfEligible(context, level: level);
+      await presentYallaRatingIfEligible(context, level: level);
     });
   }
 
@@ -232,10 +235,12 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                             child: ElevatedButton(
                               onPressed: () {
                                 GameFeedback.tap();
+                                unawaited(yallaSessionReplaySetup());
                                 game.resetGame();
                                 Navigator.pushAndRemoveUntil(
                                   context,
-                                  MaterialPageRoute(
+                                  yallaPage(
+                                    name: YallaRoute.categories,
                                     builder: (_) =>
                                         const CategorySelectionScreen(),
                                   ),
@@ -257,7 +262,8 @@ class _ScoreboardScreenState extends State<ScoreboardScreen> {
                                     GameFeedback.tap();
                                     Navigator.pushAndRemoveUntil(
                                       context,
-                                      MaterialPageRoute(
+                                      yallaPage(
+                                        name: YallaRoute.home,
                                         builder: (_) => const HomeScreen(),
                                       ),
                                       (route) => false,

@@ -11,7 +11,7 @@ Firebase Console, OS display in background, a local banner in foreground.
 
 FCM tokens and background delivery only work on the host **`[DEFAULT]`**
 Firebase app (`google-services.json` / `GoogleService-Info.plist`). The
-named `game_kit` app is RC + More Games analytics; it cannot receive
+named `game_kit` app is Remote Config only; it cannot receive
 background pushes. See [FIREBASE.md](FIREBASE.md).
 
 Campaigns send a **notification** message (title and body). The kit does

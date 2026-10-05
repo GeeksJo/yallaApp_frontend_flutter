@@ -10,6 +10,7 @@ import 'audio_preference_migration.dart';
 import 'firebase_service.dart';
 import 'game_kit_products.dart';
 import 'storage_service.dart';
+import 'yalla_analytics.dart';
 
 // Call sites for `game_kit` in this app:
 //
@@ -64,7 +65,7 @@ const yallaShareConfig = ShareConfig(
   appName: 'Yalla! - 5 seconds',
   androidPackageName: yallaStoreId,
   iosAppId: yallaIosAppId,
-  analyticsGameName: 'yalla',
+  analyticsGameName: yallaAnalyticsGameName,
 );
 
 /// Mon/Wed/Fri at 18:00 local. The 48-hour install delay and the stop after
@@ -136,11 +137,11 @@ Future<void> initializeGameKit(StorageService storage) async {
     GameKitConfig(
       locale: persistedLocale,
       crossPromoSheetSeedColor: AppColors.primary,
-      // The kit's own named `game_kit` Firebase app: shared Remote Config
-      // (interstitial cooldown, launch grace, support email) plus More Games
-      // analytics. Its options are packaged inside the kit, so this needs no
-      // host config file. Separate from the host [DEFAULT] app that
-      // FirebaseService brings up for the kill switch and push.
+      // The kit's named `game_kit` Firebase app is Remote Config only
+      // (interstitial cooldown, launch grace, support email). Its options
+      // are packaged inside the kit. Gameplay, ads, IAP, rating, and More
+      // Games analytics all go to the host [DEFAULT] app that FirebaseService
+      // brings up.
       firebase: GameKitFirebaseConfig.builtIn(),
       // Lets the kit read Remote Config through this app. Without it the kit
       // falls back to its compiled defaults and console values are ignored -
