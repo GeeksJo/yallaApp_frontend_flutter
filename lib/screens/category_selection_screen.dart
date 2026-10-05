@@ -379,6 +379,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                     ),
                   ),
                   const AppBottomBannerSlot(),
+                  SizedBox(height: MediaQuery.paddingOf(context).bottom),
                 ],
               ),
             ),

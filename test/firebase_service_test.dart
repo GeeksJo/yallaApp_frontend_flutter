@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yalla/const/remote_config_keys.dart';
-import 'package:yalla/core/config/level_play_ids.dart';
 import 'package:yalla/services/firebase_service.dart';
 
 /// The ads kill switch, and what happens before Firebase is configured.
@@ -201,26 +200,25 @@ void main() {
       expect(service.revision.value, greaterThan(initialRevision));
     });
 
-    test('level play ids fall back until a unit id is published', () async {
+    test('level play ids stay empty until published', () async {
       await service.initialize();
       remoteConfig.completeFetch();
 
       final placements = service.resolveLevelPlayPlacements();
 
-      expect(placements.bannerAndroid, LevelPlayIds.bannerAndroid);
-      expect(placements.bannerIos, LevelPlayIds.bannerIos);
-      expect(placements.interstitialAndroid, LevelPlayIds.interstitialAndroid);
-      expect(placements.interstitialIos, LevelPlayIds.interstitialIos);
-      expect(placements.rewardedAndroid, LevelPlayIds.rewardedAndroid);
-      expect(placements.rewardedIos, LevelPlayIds.rewardedIos);
-      expect(placements.nativeAndroid, LevelPlayIds.nativeAndroid);
-      expect(placements.nativeIos, LevelPlayIds.nativeIos);
-      expect(placements.appKeyAndroid, LevelPlayIds.appKeyAndroid);
-      expect(placements.appKeyIos, LevelPlayIds.appKeyIos);
+      expect(placements.bannerAndroid, isEmpty);
+      expect(placements.bannerIos, isEmpty);
+      expect(placements.interstitialAndroid, isEmpty);
+      expect(placements.interstitialIos, isEmpty);
+      expect(placements.rewardedAndroid, isEmpty);
+      expect(placements.rewardedIos, isEmpty);
+      expect(placements.nativeAndroid, isEmpty);
+      expect(placements.nativeIos, isEmpty);
+      expect(placements.appKeyAndroid, isEmpty);
+      expect(placements.appKeyIos, isEmpty);
       expect(
         service.readForKit(RemoteConfigKeys.levelPlayAndroidBannerId),
         isEmpty,
-        reason: 'an unset unit id must not mask a later kit read',
       );
     });
 
@@ -237,10 +235,10 @@ void main() {
 
       final frozen = service.freezeLevelPlayPlacements();
       expect(frozen.bannerAndroid, 'remote-banner');
-      expect(frozen.bannerIos, LevelPlayIds.bannerIos);
-      expect(frozen.nativeIos, LevelPlayIds.nativeIos);
+      expect(frozen.bannerIos, isEmpty);
+      expect(frozen.nativeIos, isEmpty);
       expect(frozen.appKeyIos, 'ios-key');
-      expect(frozen.appKeyAndroid, LevelPlayIds.appKeyAndroid);
+      expect(frozen.appKeyAndroid, isEmpty);
 
       remoteConfig.setRemote(
         RemoteConfigKeys.levelPlayAndroidBannerId,

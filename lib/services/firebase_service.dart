@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:game_kit/game_kit.dart';
 
 import '../const/remote_config_keys.dart';
-import '../core/config/level_play_ids.dart';
 
 enum RemoteConfigEntrySource { staticValue, defaultValue, remoteValue }
 
@@ -292,54 +291,25 @@ class FirebaseService {
     return _levelPlayPlacements ??= resolveLevelPlayPlacements();
   }
 
-  /// Published LevelPlay ids, falling back to [fallback] per field.
+  /// Published LevelPlay ids. An unset key stays empty so ads load from
+  /// Remote Config only.
   ///
   /// Native ids are included even though [LevelPlayProdUnitIds] has no native
   /// slot: they stay on this snapshot so a published native unit is not dropped.
-  LevelPlayPlacementIds resolveLevelPlayPlacements({
-    LevelPlayPlacementIds fallback = LevelPlayIds.placements,
-  }) {
+  LevelPlayPlacementIds resolveLevelPlayPlacements() {
     return LevelPlayPlacementIds(
-      appKeyAndroid: getString(
-        RemoteConfigKeys.levelPlayAppKeyAndroid,
-        defaultValue: fallback.appKeyAndroid,
-      ),
-      appKeyIos: getString(
-        RemoteConfigKeys.levelPlayAppKeyIos,
-        defaultValue: fallback.appKeyIos,
-      ),
-      bannerAndroid: getString(
-        RemoteConfigKeys.levelPlayAndroidBannerId,
-        defaultValue: fallback.bannerAndroid,
-      ),
-      bannerIos: getString(
-        RemoteConfigKeys.levelPlayIosBannerId,
-        defaultValue: fallback.bannerIos,
-      ),
+      appKeyAndroid: getString(RemoteConfigKeys.levelPlayAppKeyAndroid),
+      appKeyIos: getString(RemoteConfigKeys.levelPlayAppKeyIos),
+      bannerAndroid: getString(RemoteConfigKeys.levelPlayAndroidBannerId),
+      bannerIos: getString(RemoteConfigKeys.levelPlayIosBannerId),
       interstitialAndroid: getString(
         RemoteConfigKeys.levelPlayAndroidInterstitialId,
-        defaultValue: fallback.interstitialAndroid,
       ),
-      interstitialIos: getString(
-        RemoteConfigKeys.levelPlayIosInterstitialId,
-        defaultValue: fallback.interstitialIos,
-      ),
-      rewardedAndroid: getString(
-        RemoteConfigKeys.levelPlayAndroidRewardedId,
-        defaultValue: fallback.rewardedAndroid,
-      ),
-      rewardedIos: getString(
-        RemoteConfigKeys.levelPlayIosRewardedId,
-        defaultValue: fallback.rewardedIos,
-      ),
-      nativeAndroid: getString(
-        RemoteConfigKeys.levelPlayAndroidNativeId,
-        defaultValue: fallback.nativeAndroid,
-      ),
-      nativeIos: getString(
-        RemoteConfigKeys.levelPlayIosNativeId,
-        defaultValue: fallback.nativeIos,
-      ),
+      interstitialIos: getString(RemoteConfigKeys.levelPlayIosInterstitialId),
+      rewardedAndroid: getString(RemoteConfigKeys.levelPlayAndroidRewardedId),
+      rewardedIos: getString(RemoteConfigKeys.levelPlayIosRewardedId),
+      nativeAndroid: getString(RemoteConfigKeys.levelPlayAndroidNativeId),
+      nativeIos: getString(RemoteConfigKeys.levelPlayIosNativeId),
     );
   }
 
@@ -498,4 +468,31 @@ class YallaRemoteConfigAdapter extends GameKitRemoteConfig {
     }
     return _firebase.getInt(key, defaultValue: defaultValue);
   }
+}
+
+/// App keys and ad unit ids captured from Remote Config for one process.
+class LevelPlayPlacementIds {
+  const LevelPlayPlacementIds({
+    required this.appKeyAndroid,
+    required this.appKeyIos,
+    required this.bannerAndroid,
+    required this.bannerIos,
+    required this.interstitialAndroid,
+    required this.interstitialIos,
+    required this.rewardedAndroid,
+    required this.rewardedIos,
+    required this.nativeAndroid,
+    required this.nativeIos,
+  });
+
+  final String appKeyAndroid;
+  final String appKeyIos;
+  final String bannerAndroid;
+  final String bannerIos;
+  final String interstitialAndroid;
+  final String interstitialIos;
+  final String rewardedAndroid;
+  final String rewardedIos;
+  final String nativeAndroid;
+  final String nativeIos;
 }
