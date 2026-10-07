@@ -12,6 +12,7 @@ plugins {
     // configured itself silently would mean no kill switch and no push, with
     // nothing on screen to notice.
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 val keystorePropertiesFile = rootProject.file("key.properties")

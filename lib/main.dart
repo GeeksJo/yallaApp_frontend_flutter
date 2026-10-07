@@ -20,13 +20,15 @@ void main() async {
   // throws - see FirebaseService.initialize.
   await FirebaseService.instance.initialize();
 
-  // Flutter will not accept a background-handler registration from inside
-  // GameKit.initialize; it has to happen here in main, before runApp. Guarded
-  // because it needs a live [DEFAULT] Firebase app.
+  // Host [DEFAULT] Firebase only — see game_kit HOST_ATT_AND_CRASHLYTICS_PROMPT.md.
   if (FirebaseService.instance.hasDefaultFirebaseApp) {
+    await GameKitIosAppTracking.deferFirebaseAnalyticsCollection();
+    // Flutter will not accept a background-handler registration from inside
+    // GameKit.initialize; it has to happen here in main, before runApp.
     FirebaseMessaging.onBackgroundMessage(
       gameKitFirebaseMessagingBackgroundHandler,
     );
+    await GameKitCrashlytics.install();
   }
 
   final storage = StorageService();

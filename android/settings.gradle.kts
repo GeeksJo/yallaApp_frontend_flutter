@@ -23,7 +23,8 @@ plugins {
     id("org.jetbrains.kotlin.android") version "2.3.20" apply false
     // Reads android/app/google-services.json at build time. Declared here,
     // applied in app/build.gradle.kts.
-    id("com.google.gms.google-services") version("4.3.15") apply false
+    id("com.google.gms.google-services") version("4.4.4") apply false
+    id("com.google.firebase.crashlytics") version("3.0.8") apply false
 }
 
 include(":app")
