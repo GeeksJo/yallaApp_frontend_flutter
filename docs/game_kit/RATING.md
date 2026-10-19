@@ -1,10 +1,11 @@
 # Rating
 
 A store deep-link after every win burns Apple/Google quotas and feels like an
-ad. The kit owns a **two-step, sentiment-based** prompt: “Enjoying the game?”
-then either the **in-app** review sheet or a feedback mailto. Settings “Rate
-this app” requests the **in-app** review sheet only (never deep-links to the
-store listing).
+ad. The kit owns a **one-step** prompt: when policy allows, it requests the OS
+**in-app** review sheet directly. No “Enjoying the game?” question comes first
+(Google Play forbids pre-questions before the review card) and a low rating is
+never routed to email. Settings “Rate this app” requests the same **in-app**
+review sheet only (never deep-links to the store listing).
 
 `lib/src/rating/` · `GameKit.rating` · `RatingConfig`
 
@@ -20,9 +21,10 @@ permanent stop. A submitted rating (`positive`) also stops forever.
 prompt. `registerSessionLaunch` runs from `GameKit.initialize`.
 
 Prefer `GameKitRatingPrompt.presentIfEligible(context, level: …)` after a win.
-It listens for the soft-prompt signal, shows kit EN/AR copy, then calls
-`respond`. Tests inject `GameKitConfig.reviewClient` so the native sheet never
-opens.
+It listens for the soft-prompt signal and, when it fires, calls
+`requestNativeReview` straight away; it returns true so the caller skips the
+interstitial on that beat. Tests inject `GameKitConfig.reviewClient` so the
+native sheet never opens.
 
 ## iOS native sheet
 
@@ -33,6 +35,7 @@ lifetime slot. Do not add a second host counter on top.
 
 ## Known limits
 
-- Feedback after “Not really” is a mailto, not an in-app form.
+- There is no feedback branch: a “Contact us” row in settings is the only
+  mailto, never a reaction to a rating answer.
 - `openStoreListingForCurrentPlatform` needs `ShareConfig.iosAppId` on iOS
   or it no-ops (avoids `in_app_review` throwing).

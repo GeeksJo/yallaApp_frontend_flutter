@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import '../theme/app_theme.dart';
 import 'emergency_block_notice.dart';
@@ -36,7 +35,7 @@ class HostEmergencyGate extends StatefulWidget {
     this.remoteConfig = const YallaRemoteConfigAdapter(),
     this.refresh,
     this.recheck,
-    this.loadCurrentVersion = _loadInstalledVersion,
+    this.loadCurrentVersion = readInstalledAppVersion,
     this.refreshTimeout = const Duration(seconds: 4),
     super.key,
   });
@@ -45,21 +44,18 @@ class HostEmergencyGate extends StatefulWidget {
   final GameKitRemoteConfig remoteConfig;
   final Future<void> Function()? refresh;
   final Listenable? recheck;
+
+  /// Installed-version reader handed to the kit's [ForceUpdateService].
+  /// Defaults to the kit's own PackageInfo reader; tests pass a stub.
   final CurrentVersionLoader loadCurrentVersion;
   final Duration refreshTimeout;
 
   @override
   State<HostEmergencyGate> createState() => _HostEmergencyGateState();
-
-  static Future<String> _loadInstalledVersion() async {
-    final info = await PackageInfo.fromPlatform();
-    return info.version.trim();
-  }
 }
 
 class _HostEmergencyGateState extends State<HostEmergencyGate>
     with WidgetsBindingObserver {
-  String _currentVersion = '';
   _EmergencyState _state = _EmergencyState.none;
   final ValueNotifier<bool> _playbackBlocked = ValueNotifier<bool>(false);
   Future<void>? _checkInFlight;
@@ -71,7 +67,6 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     widget.recheck?.addListener(_onRecheck);
-    unawaited(_loadVersionAndCheck());
     unawaited(_check());
   }
 
@@ -104,18 +99,6 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
 
   void _onRecheck() {
     unawaited(_check());
-  }
-
-  Future<void> _loadVersionAndCheck() async {
-    try {
-      final version = await widget.loadCurrentVersion();
-      if (!mounted) return;
-      _currentVersion = version.trim();
-      unawaited(_check());
-    } catch (_) {
-      // Unknown app version must fail open. A later rebuild/recheck can still
-      // block if the loader succeeds.
-    }
   }
 
   Future<void> _check({bool refresh = false}) {
@@ -167,6 +150,7 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
         final forceUpdate = await ForceUpdateService(
           config: _forceUpdateConfig,
           remoteConfig: widget.remoteConfig,
+          installedVersionLoader: widget.loadCurrentVersion,
         ).evaluate();
         next = _EmergencyState(
           block: forceUpdate.isRequired
@@ -189,7 +173,6 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
     return ForceUpdateConfig(
       iosAppId: '6763862332',
       androidPackageName: 'com.majoon.yalla',
-      currentVersion: _currentVersion,
       backgroundColor: AppColors.primaryDark,
       textColor: AppColors.textPrimary,
       buttonColor: AppColors.textPrimary,

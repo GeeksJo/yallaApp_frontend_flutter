@@ -26,8 +26,9 @@ import 'yalla_rating_helper.dart';
 //   a finished match, including Remove Ads. Permission is requested there, not
 //   on launch.
 // - [presentYallaRatingPromptIfEligible] - before interstitials on the same beat
-//   (round boundary or scoreboard). The level is the cumulative correct-answer
-//   count, not the in-game round.
+//   (round boundary or scoreboard). Requests the OS native review sheet
+//   directly when kit policy allows (no "Enjoying?" question first). The level
+//   is the cumulative correct-answer count, not the in-game round.
 // - [GameKit.iap] - purchases / restore / prices in [SettingsScreen] & [QuestionScreen].
 // - [GameKit.crossPromo] - catalog sheet; badge on home settings.
 // - [GameKit.share] - settings share row.
@@ -297,7 +298,7 @@ final class GameKitAdBridge {
   }
 
   /// Rating (if eligible) → interstitial on the same beat. Skips the ad when
-  /// the soft prompt was shown, matching Barrah / kit policy.
+  /// a native review was requested, matching Barrah / kit policy.
   static Future<void> presentRatingThenInterstitialAfterLevel({
     required BuildContext context,
     required bool failed,
