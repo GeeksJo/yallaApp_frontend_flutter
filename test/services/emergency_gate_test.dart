@@ -21,7 +21,7 @@ void main() {
       _app(
         remoteConfig: FakeGameKitRemoteConfig(
           strings: <String, String>{
-            RemoteConfigKeys.minRequiredVersion: '1.0.10',
+            RemoteConfigKeys.androidMinRequiredVersion: '1.0.10',
             RemoteConfigKeys.androidStoreUrl: 'https://example.com/update',
           },
         ),
@@ -40,7 +40,7 @@ void main() {
       _app(
         remoteConfig: FakeGameKitRemoteConfig(
           strings: <String, String>{
-            RemoteConfigKeys.minRequiredVersion: '1.0.10',
+            RemoteConfigKeys.androidMinRequiredVersion: '1.0.10',
           },
         ),
         child: Builder(
@@ -64,7 +64,7 @@ void main() {
           strings: <String, String>{
             RemoteConfigKeys.showAppMoved: 'true',
             RemoteConfigKeys.newAndroidStoreUrl: 'https://example.com/new',
-            RemoteConfigKeys.minRequiredVersion: '1.0.10',
+            RemoteConfigKeys.androidMinRequiredVersion: '1.0.10',
           },
         ),
       ),
@@ -98,6 +98,46 @@ void main() {
       find.text('The app has moved to a new store listing'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('does not block for the removed shared minimum', (tester) async {
+    await tester.pumpWidget(
+      _app(
+        remoteConfig: FakeGameKitRemoteConfig(
+          strings: <String, String>{'min_required_version': '9.0.0'},
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('game'), findsOneWidget);
+    expect(find.byType(ForceUpdateScreen), findsNothing);
+  });
+
+  testWidgets('applies and clears a platform minimum on RC changes', (
+    tester,
+  ) async {
+    final remoteConfig = _MutableRemoteConfig();
+    final recheck = ValueNotifier<int>(0);
+    addTearDown(recheck.dispose);
+
+    await tester.pumpWidget(_app(remoteConfig: remoteConfig, recheck: recheck));
+    await tester.pump();
+    expect(find.text('game'), findsOneWidget);
+
+    remoteConfig.set(RemoteConfigKeys.androidMinRequiredVersion, '1.0.10');
+    recheck.value += 1;
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(ForceUpdateScreen), findsOneWidget);
+    expect(find.text('game'), findsNothing);
+
+    remoteConfig.set(RemoteConfigKeys.androidMinRequiredVersion, '');
+    recheck.value += 1;
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(ForceUpdateScreen), findsNothing);
+    expect(find.text('game'), findsOneWidget);
   });
 }
 

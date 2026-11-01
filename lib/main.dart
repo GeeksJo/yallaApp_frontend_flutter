@@ -2,13 +2,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:provider/provider.dart';
+
 import 'app.dart';
 import 'data/questions.dart';
-import 'services/firebase_service.dart';
 import 'providers/coin_provider.dart';
 import 'providers/game_provider.dart';
 import 'providers/game_settings_provider.dart';
 import 'providers/locale_provider.dart';
+import 'services/firebase_service.dart';
 import 'services/game_kit_bootstrap.dart';
 import 'services/storage_service.dart';
 

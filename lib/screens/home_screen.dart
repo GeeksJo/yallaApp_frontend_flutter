@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
-import 'package:yalla/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:yalla/l10n/app_localizations.dart';
+
 import '../models/game_state.dart';
-import '../providers/locale_provider.dart';
 import '../providers/game_provider.dart';
+import '../providers/locale_provider.dart';
 import '../services/game_feedback.dart';
 import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
@@ -12,9 +13,9 @@ import '../widgets/app_bottom_banner_slot.dart';
 import '../widgets/app_cross_promo.dart';
 import '../widgets/responsive_layout.dart';
 import 'category_selection_screen.dart';
-import 'settings_screen.dart';
 import 'how_to_play_screen.dart';
 import 'player_setup_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -242,7 +243,6 @@ class _HomePortraitScrollBody extends StatelessWidget {
                         child: _HomeFooterActions(
                           l10n: l10n,
                           isArabic: isArabic,
-                          isRtl: isRtl,
                           isTablet: isTablet,
                         ),
                       ),
@@ -372,7 +372,6 @@ class _HomeLandscapeBody extends StatelessWidget {
                   _HomeFooterActions(
                     l10n: l10n,
                     isArabic: isArabic,
-                    isRtl: isRtl,
                     isTablet: isTablet,
                   ),
                 ],
@@ -511,13 +510,11 @@ class _HomeModeButtons extends StatelessWidget {
 class _HomeFooterActions extends StatelessWidget {
   final AppLocalizations l10n;
   final bool isArabic;
-  final bool isRtl;
   final bool isTablet;
 
   const _HomeFooterActions({
     required this.l10n,
     required this.isArabic,
-    required this.isRtl,
     required this.isTablet,
   });
 
@@ -529,18 +526,41 @@ class _HomeFooterActions extends StatelessWidget {
 
     return Column(
       children: [
-        StreamBuilder<bool>(
-          initialData: GameKit.crossPromo.hasNewGame,
-          stream: GameKit.crossPromo.hasNewGameChanges,
-          builder: (context, snap) {
-            final showBadge = snap.data ?? false;
-            return _MoreGamesPillButton(
-              label: l10n.moreGames,
-              showBadge: showBadge,
-              onTap: () => showAppCrossPromoSheet(context),
-              isRtl: isRtl,
-            );
+        PromoGamesCard(
+          placement: 'home',
+          title: l10n.moreGames,
+          maxGames: 5,
+          showAllTile: true,
+          allLabel: l10n.moreGames,
+          onGameTapFeedback: () => GameKit.sounds.lightTap(),
+          onAllTap: () {
+            GameFeedback.tap();
+            showAppCrossPromoSheet(context);
           },
+          style: PromoGamesCardStyle(
+            backgroundColor: Colors.transparent,
+            borderRadius: AppRadius.xl,
+            headerIconColor: AppColors.coin,
+            headerIconSize: isTablet ? 28 : 22,
+            titleStyle: TextStyle(
+              fontFamily: AppFonts.family,
+              color: AppColors.textPrimary,
+              fontSize: isTablet ? 23 : 16.5,
+              fontWeight: FontWeight.w900,
+            ),
+            labelStyle: TextStyle(
+              fontFamily: AppFonts.family,
+              color: AppColors.textPrimary,
+              fontSize: isTablet ? 16 : 13,
+              fontWeight: FontWeight.w800,
+            ),
+            iconSize: isTablet ? 72 : 56,
+            iconBorderWidth: 0,
+            placeholderColor: AppColors.cardFill,
+            placeholderIconColor: AppColors.textSecondary,
+            allTileColor: AppColors.cardFill,
+            allTileForegroundColor: AppColors.textPrimary,
+          ),
         ),
         SizedBox(height: gapMoreToHelp),
         TextButton.icon(
@@ -770,173 +790,6 @@ class _ModeButton extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _MoreGamesPillButton extends StatelessWidget {
-  final String label;
-  final bool showBadge;
-  final VoidCallback onTap;
-  final bool isRtl;
-
-  const _MoreGamesPillButton({
-    required this.label,
-    required this.showBadge,
-    required this.onTap,
-    required this.isRtl,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isTablet = ResponsiveLayout.isTablet(context);
-    // Palette inspired by `assets/images/yalla.png` (logo)
-    const ink = Color(0xFF1E2A33);
-    const dynamiteRed = Color(0xFFE31B23);
-    const cream = Color(0xFFF5F1E6);
-    const cream2 = Color(0xFFE9E4D7);
-    const accentBlue = Color(0xFF3BA6F2);
-
-    final chevronIcon = isRtl
-        ? Icons.chevron_right_rounded
-        : Icons.chevron_left_rounded;
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        InkWell(
-          onTap: () {
-            GameFeedback.tap();
-            onTap();
-          },
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          splashColor: Colors.white.withValues(alpha: 0.12),
-          highlightColor: Colors.transparent,
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: isTablet ? 20 : 16,
-              vertical: isTablet ? 17 : 18,
-            ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  cream.withValues(alpha: 0.96),
-                  cream2.withValues(alpha: 0.92),
-                ],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(color: ink.withValues(alpha: 0.14)),
-              boxShadow: [
-                BoxShadow(
-                  color: ink.withValues(alpha: 0.18),
-                  blurRadius: 18,
-                  offset: const Offset(0, 10),
-                ),
-
-                BoxShadow(
-                  color: accentBlue.withValues(alpha: 0.14),
-                  blurRadius: 22,
-                  offset: const Offset(0, 0),
-                ),
-              ],
-            ),
-            foregroundDecoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border(bottom: BorderSide(color: dynamiteRed, width: 3)),
-            ),
-            child: Stack(
-              children: [
-                Row(
-                  textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-                  children: [
-                    Container(
-                      width: isTablet ? 56 : 46,
-                      height: isTablet ? 56 : 46,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.70),
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                        border: Border.all(color: ink.withValues(alpha: 0.14)),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(isTablet ? 9 : 8),
-                        child: Image.asset(
-                          'assets/images/game_controller.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: AppFonts.family,
-                          color: ink,
-                          fontSize: isTablet ? 25.0 : 16.5,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: isTablet ? 46 : 38,
-                      height: isTablet ? 46 : 38,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.68),
-                        borderRadius: BorderRadius.circular(
-                          AppRadius.round(context),
-                        ),
-                        border: Border.all(color: ink.withValues(alpha: 0.14)),
-                      ),
-                      child: Icon(
-                        chevronIcon,
-                        size: isTablet ? 28 : 24,
-                        color: ink.withValues(alpha: 0.92),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (showBadge)
-          Positioned(
-            top: -6,
-            right: isRtl ? null : 10,
-            left: isRtl ? 10 : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: dynamiteRed,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.18),
-                    blurRadius: 10,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Text(
-                'NEW',
-                style: TextStyle(
-                  fontFamily: AppFonts.family,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: isTablet ? 13.5 : 12,
-                  letterSpacing: 0.6,
-                  height: 1.0,
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }

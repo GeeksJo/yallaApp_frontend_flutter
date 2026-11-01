@@ -20,7 +20,9 @@ abstract final class RemoteConfigKeys {
   static const String levelPlayIosRewardedId = 'levelplay_ios_rewarded_id';
   static const String levelPlayIosNativeId = 'levelplay_ios_native_id';
 
-  static const String minRequiredVersion = 'min_required_version';
+  static const String androidMinRequiredVersion =
+      'android_min_required_version';
+  static const String iosMinRequiredVersion = 'ios_min_required_version';
   static const String androidStoreUrl = 'android_store_url';
   static const String iosStoreUrl = 'ios_store_url';
 

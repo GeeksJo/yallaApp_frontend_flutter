@@ -257,7 +257,11 @@ void main() {
     test(
       'force update and app moved urls come from published strings',
       () async {
-        remoteConfig.setRemote(RemoteConfigKeys.minRequiredVersion, '9.0.0');
+        remoteConfig.setRemote(
+          RemoteConfigKeys.androidMinRequiredVersion,
+          '9.0.0',
+        );
+        remoteConfig.setRemote(RemoteConfigKeys.iosMinRequiredVersion, '8.0.0');
         remoteConfig.setRemote(
           RemoteConfigKeys.androidStoreUrl,
           'https://play.example/yalla',
@@ -279,8 +283,16 @@ void main() {
         remoteConfig.completeFetch();
 
         final adapter = YallaRemoteConfigAdapter(service);
-        expect(service.resolveMinRequiredVersion(), '9.0.0');
-        expect(adapter.getString(RemoteConfigKeys.minRequiredVersion), '9.0.0');
+        expect(service.resolveAndroidMinRequiredVersion(), '9.0.0');
+        expect(service.resolveIosMinRequiredVersion(), '8.0.0');
+        expect(
+          adapter.getString(RemoteConfigKeys.androidMinRequiredVersion),
+          '9.0.0',
+        );
+        expect(
+          adapter.getString(RemoteConfigKeys.iosMinRequiredVersion),
+          '8.0.0',
+        );
         expect(
           adapter.getString(RemoteConfigKeys.androidStoreUrl),
           'https://play.example/yalla',

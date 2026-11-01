@@ -1,8 +1,9 @@
 # Force update
 
 A broken puzzle or a store-rejected binary needs a **hard stop**, not a
-snackbar. `ForceUpdateGate` blocks the tree when host Remote Config
-`min_required_version` is higher than `ForceUpdateConfig.currentVersion`.
+snackbar. Yalla's `HostEmergencyGate` blocks the tree when host Remote Config
+`android_min_required_version` (Android) or `ios_min_required_version` (iOS)
+is higher than the installed app version.
 
 `lib/src/force_update/` · wrap the app with `ForceUpdateGate`
 
@@ -13,8 +14,11 @@ This reads the **host** `[DEFAULT]` Firebase Remote Config, not the kit
 `android_store_url`; otherwise they are built from `iosAppId` /
 `androidPackageName`.
 
-If RC is not ready, the gate **does not block** (fail open) so a config
-outage cannot brick installs.
+The kit reads the installed version through `PackageInfo.version`, which
+comes from the host `pubspec.yaml`. Do not pass a hardcoded current version.
+
+If RC is not ready, the installed version is unavailable, or the platform's
+minimum is empty, the gate **does not block** (fail open).
 
 Compare with `isVersionLowerThan` (numeric segments). Branding
 (colors, illustration) is per-app on `ForceUpdateConfig`.
@@ -22,12 +26,23 @@ Compare with `isVersionLowerThan` (numeric segments). Branding
 ## Host wiring
 
 ```dart
-ForceUpdateGate(
-  config: myForceUpdateConfig,
-  remoteConfig: hostRcAdapter, // host [DEFAULT] RC
+HostEmergencyGate(
+  remoteConfig: const YallaRemoteConfigAdapter(), // host [DEFAULT] RC
+  refresh: FirebaseService.instance.refresh,
+  recheck: FirebaseService.instance.revision,
   child: MyApp(),
 )
 ```
+
+The gate passes `YallaForceUpdateRemoteConfig` to `ForceUpdateService`.
+It maps the kit's `min_required_version_android` / `min_required_version_ios`
+reads to Yalla's `android_min_required_version` / `ios_min_required_version`.
+The old shared `min_required_version` is ignored, including when a platform
+minimum is missing. The other platform's minimum never blocks this platform.
+
+Publish the two new string parameters in the host Firebase project, with an
+empty default. Set each minimum only to a version available on that store.
+Keep the shared parameter for older app builds that still read it.
 
 ## Known limits
 

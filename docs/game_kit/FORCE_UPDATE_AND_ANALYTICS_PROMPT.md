@@ -12,8 +12,10 @@ Analytics needs no wiring here: every kit event goes to the host's own property.
 // Host Firebase (force update RC)
 await Firebase.initializeApp();
 await FirebaseRemoteConfig.instance.fetchAndActivate();
-final minVersion = FirebaseRemoteConfig.instance
-    .getString('min_required_version');
+final androidMinVersion = FirebaseRemoteConfig.instance
+    .getString('android_min_required_version');
+final iosMinVersion = FirebaseRemoteConfig.instance
+    .getString('ios_min_required_version');
 
 // Kit Firebase (shared Remote Config: ad timing, contact)
 await GameKit.initialize(
@@ -24,14 +26,22 @@ await GameKit.initialize(
   ),
 );
 
+final forceUpdateConfig = ForceUpdateConfig(
+  androidMinRequiredVersion: androidMinVersion,
+  iosMinRequiredVersion: iosMinVersion,
+  iosAppId: '6763862332',
+  androidPackageName: 'com.majoon.yalla',
+  // colors...
+);
+
 runApp(
   ForceUpdateGate(
-    config: ForceUpdateConfig(
-      currentVersion: packageInfo.version,
-      minRequiredVersion: minVersion,
-      iosAppId: '...',
-      androidPackageName: 'com.geeksjo.barra',
-      // colors...
+    config: forceUpdateConfig,
+    service: ForceUpdateService(
+      config: forceUpdateConfig,
+      remoteConfig: YallaForceUpdateRemoteConfig(
+        const YallaRemoteConfigAdapter(),
+      ),
     ),
     strings: (c) => ForceUpdateStrings.arabic(),
     child: MyApp(),
@@ -43,9 +53,16 @@ runApp(
 
 | Concern | Firebase project |
 | ------- | ---------------- |
-| Force update `min_required_version` | **Host** `[DEFAULT]` |
+| Force update `android_min_required_version` / `ios_min_required_version` | **Host** `[DEFAULT]` |
 | Ads cooldown `interstitial_cooldown_seconds` | **Kit** `game_kit` app |
 | All analytics, More Games included | **Host** `[DEFAULT]` |
+
+The installed version is read by the kit. Yalla's adapter translates the key
+names to the kit's platform keys and disables its legacy shared fallback.
+For live updates and resume checks, use the existing `HostEmergencyGate`,
+which re-reads the active host values on each check. A missing or empty
+platform minimum allows that platform through. Publish each minimum only
+after its version is available on the corresponding store.
 
 ## Kit Remote Config
 
