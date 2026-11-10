@@ -19,7 +19,7 @@ dependencies:
   game_kit:
     git:
       url: https://github.com/GeeksJo/gameKit_package_flutter.git
-      ref: development
+      ref: v0.1.0
 
   # Host [DEFAULT] Firebase. Remote Config carries the ads kill switch and the
   # force-update / app-moved values; Messaging receives remote campaigns, which
