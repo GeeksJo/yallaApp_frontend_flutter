@@ -481,11 +481,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.1.0"
-      resolved-ref: "8810a9b5eb44c576c9fa37f7386665d5caef22a6"
+      ref: "v0.1.1"
+      resolved-ref: "19cdbf0c08f85faeaa0dcd551484c8da4c559914"
       url: "https://github.com/GeeksJo/gameKit_package_flutter.git"
     source: git
-    version: "0.1.0"
+    version: "0.1.1"
   google_mobile_ads:
     dependency: transitive
     description:
