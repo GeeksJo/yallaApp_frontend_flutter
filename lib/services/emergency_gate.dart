@@ -176,7 +176,8 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
       backgroundColor: AppColors.primaryDark,
       textColor: AppColors.textPrimary,
       buttonColor: AppColors.textPrimary,
-      buttonTextColor: AppColors.primaryDark,
+      buttonTextColor: AppColors.primary,
+      illustrationAsset: 'assets/images/force_update_icon.png',
     );
   }
 
