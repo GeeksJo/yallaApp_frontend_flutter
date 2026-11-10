@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:yalla/const/level_play_ids.dart';
 import 'package:yalla/const/remote_config_keys.dart';
+import 'package:yalla/core/config/level_play_ids.dart';
 import 'package:yalla/services/firebase_service.dart';
 
 /// The ads kill switch, and what happens before Firebase is configured.

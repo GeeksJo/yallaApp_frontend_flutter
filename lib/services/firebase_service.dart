@@ -6,8 +6,8 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:game_kit/game_kit.dart';
 
-import '../const/level_play_ids.dart';
 import '../const/remote_config_keys.dart';
+import '../core/config/level_play_ids.dart';
 
 enum RemoteConfigEntrySource { staticValue, defaultValue, remoteValue }
 
@@ -302,7 +302,7 @@ class FirebaseService {
   /// Native ids are included even though [LevelPlayProdUnitIds] has no native
   /// slot: they stay on this snapshot so a published native unit is not dropped.
   LevelPlayPlacementIds resolveLevelPlayPlacements({
-    LevelPlayPlacementIds fallback = LevelPlayIds.placements,
+    LevelPlayPlacementIds fallback = LevelPlayPlacementIds.compiled,
   }) {
     return LevelPlayPlacementIds(
       appKeyAndroid: getString(
@@ -516,7 +516,7 @@ class YallaRemoteConfigAdapter extends GameKitRemoteConfig {
 /// App keys and ad unit ids for one process.
 ///
 /// A published Remote Config string replaces the matching compiled id.
-/// Empty and non-remote values keep [LevelPlayIds.placements].
+/// Empty and non-remote values keep [LevelPlayPlacementIds.compiled].
 class LevelPlayPlacementIds {
   const LevelPlayPlacementIds({
     required this.appKeyAndroid,
@@ -530,6 +530,20 @@ class LevelPlayPlacementIds {
     required this.nativeAndroid,
     required this.nativeIos,
   });
+
+  /// The compiled ids from [LevelPlayIds], before any Remote Config override.
+  static const LevelPlayPlacementIds compiled = LevelPlayPlacementIds(
+    appKeyAndroid: LevelPlayIds.appKeyAndroid,
+    appKeyIos: LevelPlayIds.appKeyIos,
+    bannerAndroid: LevelPlayIds.bannerAndroid,
+    bannerIos: LevelPlayIds.bannerIos,
+    interstitialAndroid: LevelPlayIds.interstitialAndroid,
+    interstitialIos: LevelPlayIds.interstitialIos,
+    rewardedAndroid: LevelPlayIds.rewardedAndroid,
+    rewardedIos: LevelPlayIds.rewardedIos,
+    nativeAndroid: LevelPlayIds.nativeAndroid,
+    nativeIos: LevelPlayIds.nativeIos,
+  );
 
   final String appKeyAndroid;
   final String appKeyIos;

@@ -1,6 +1,5 @@
 // App keys and ad unit IDs are public identifiers, not secrets.
 // Checked against the LevelPlay dashboard (levelplay_tools_node) on 2026-11-10.
-import '../services/firebase_service.dart' show LevelPlayPlacementIds;
 
 /// Compiled LevelPlay identifiers, before any Remote Config override.
 ///
@@ -17,17 +16,4 @@ abstract final class LevelPlayIds {
   static const String nativeIos = 'pb1jjvy2day2rz2t';
   static const String rewardedAndroid = '8zbj7ngk9koobeel';
   static const String rewardedIos = '7ms0f73ajixdf2e3';
-
-  static const LevelPlayPlacementIds placements = LevelPlayPlacementIds(
-    appKeyAndroid: appKeyAndroid,
-    appKeyIos: appKeyIos,
-    bannerAndroid: bannerAndroid,
-    bannerIos: bannerIos,
-    interstitialAndroid: interstitialAndroid,
-    interstitialIos: interstitialIos,
-    rewardedAndroid: rewardedAndroid,
-    rewardedIos: rewardedIos,
-    nativeAndroid: nativeAndroid,
-    nativeIos: nativeIos,
-  );
 }
