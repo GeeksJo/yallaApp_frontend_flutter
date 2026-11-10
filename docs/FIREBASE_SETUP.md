@@ -63,13 +63,15 @@ cannot mask the kit project. A published `interstitial_cooldown_seconds` of
 `0` is a real zero-second cooldown. Set a key here only to override the fleet
 value. See `gameKit_package_flutter/docs/ADS.md`.
 
-LevelPlay app keys and unit ids are not compiled into the app. `initializeGameKit`
-copies the published `levelplay_app_key_android` / `levelplay_app_key_ios`,
-`levelplay_android_banner_id`, `levelplay_android_interstitial_id`,
-`levelplay_android_rewarded_id`, and the `levelplay_ios_*` twins into
-`AdsConfig` once per process. An unset key stays empty, and an empty prod unit
-id is skipped rather than replaced with a built-in id. The kit can still
-replace an app key from this console or its own project at init. Native ids
+LevelPlay app keys and unit ids are compiled into `lib/const/level_play_ids.dart`.
+`initializeGameKit` copies a published `levelplay_app_key_android` /
+`levelplay_app_key_ios`, `levelplay_android_banner_id`,
+`levelplay_android_interstitial_id`, `levelplay_android_rewarded_id`, and the
+`levelplay_ios_*` twins over the compiled ids, once per process. An unset or
+empty key keeps the compiled id. A fresh install depends on that: launch is
+cache-first, so its first session freezes the ids before the first fetch
+lands, and with no compiled ids that session would load no ads. The kit can
+still replace an app key from this console or its own project at init. Native ids
 (`levelplay_android_native_id`, `levelplay_ios_native_id`) are read into the
 same snapshot. `LevelPlayProdUnitIds` has no native field, so they are not
 sent to the SDK.

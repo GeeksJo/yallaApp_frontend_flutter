@@ -6,6 +6,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:game_kit/game_kit.dart';
 
+import '../const/level_play_ids.dart';
 import '../const/remote_config_keys.dart';
 
 enum RemoteConfigEntrySource { staticValue, defaultValue, remoteValue }
@@ -292,25 +293,58 @@ class FirebaseService {
     return _levelPlayPlacements ??= resolveLevelPlayPlacements();
   }
 
-  /// Published LevelPlay ids. An unset key stays empty so ads load from
-  /// Remote Config only.
+  /// Published LevelPlay ids, falling back to [fallback] per field.
+  ///
+  /// The compiled ids matter on a fresh install: launch is cache-first and the
+  /// ids are frozen before the first fetch lands, so a Remote Config-only
+  /// snapshot would be empty and that whole session would load no ads.
   ///
   /// Native ids are included even though [LevelPlayProdUnitIds] has no native
   /// slot: they stay on this snapshot so a published native unit is not dropped.
-  LevelPlayPlacementIds resolveLevelPlayPlacements() {
+  LevelPlayPlacementIds resolveLevelPlayPlacements({
+    LevelPlayPlacementIds fallback = LevelPlayIds.placements,
+  }) {
     return LevelPlayPlacementIds(
-      appKeyAndroid: getString(RemoteConfigKeys.levelPlayAppKeyAndroid),
-      appKeyIos: getString(RemoteConfigKeys.levelPlayAppKeyIos),
-      bannerAndroid: getString(RemoteConfigKeys.levelPlayAndroidBannerId),
-      bannerIos: getString(RemoteConfigKeys.levelPlayIosBannerId),
+      appKeyAndroid: getString(
+        RemoteConfigKeys.levelPlayAppKeyAndroid,
+        defaultValue: fallback.appKeyAndroid,
+      ),
+      appKeyIos: getString(
+        RemoteConfigKeys.levelPlayAppKeyIos,
+        defaultValue: fallback.appKeyIos,
+      ),
+      bannerAndroid: getString(
+        RemoteConfigKeys.levelPlayAndroidBannerId,
+        defaultValue: fallback.bannerAndroid,
+      ),
+      bannerIos: getString(
+        RemoteConfigKeys.levelPlayIosBannerId,
+        defaultValue: fallback.bannerIos,
+      ),
       interstitialAndroid: getString(
         RemoteConfigKeys.levelPlayAndroidInterstitialId,
+        defaultValue: fallback.interstitialAndroid,
       ),
-      interstitialIos: getString(RemoteConfigKeys.levelPlayIosInterstitialId),
-      rewardedAndroid: getString(RemoteConfigKeys.levelPlayAndroidRewardedId),
-      rewardedIos: getString(RemoteConfigKeys.levelPlayIosRewardedId),
-      nativeAndroid: getString(RemoteConfigKeys.levelPlayAndroidNativeId),
-      nativeIos: getString(RemoteConfigKeys.levelPlayIosNativeId),
+      interstitialIos: getString(
+        RemoteConfigKeys.levelPlayIosInterstitialId,
+        defaultValue: fallback.interstitialIos,
+      ),
+      rewardedAndroid: getString(
+        RemoteConfigKeys.levelPlayAndroidRewardedId,
+        defaultValue: fallback.rewardedAndroid,
+      ),
+      rewardedIos: getString(
+        RemoteConfigKeys.levelPlayIosRewardedId,
+        defaultValue: fallback.rewardedIos,
+      ),
+      nativeAndroid: getString(
+        RemoteConfigKeys.levelPlayAndroidNativeId,
+        defaultValue: fallback.nativeAndroid,
+      ),
+      nativeIos: getString(
+        RemoteConfigKeys.levelPlayIosNativeId,
+        defaultValue: fallback.nativeIos,
+      ),
     );
   }
 
@@ -479,7 +513,10 @@ class YallaRemoteConfigAdapter extends GameKitRemoteConfig {
   }
 }
 
-/// App keys and ad unit ids captured from Remote Config for one process.
+/// App keys and ad unit ids for one process.
+///
+/// A published Remote Config string replaces the matching compiled id.
+/// Empty and non-remote values keep [LevelPlayIds.placements].
 class LevelPlayPlacementIds {
   const LevelPlayPlacementIds({
     required this.appKeyAndroid,
