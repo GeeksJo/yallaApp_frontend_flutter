@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game_kit/game_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yalla/l10n/app_localizations.dart';
@@ -10,6 +11,15 @@ import 'package:yalla/services/storage_service.dart';
 import 'package:yalla/widgets/settings_language_row.dart';
 
 void main() {
+  setUp(() {
+    // Each choice plays GameFeedback.tap() before switching; the kit is not
+    // initialized in widget tests, so give it silent modules.
+    GameKit.sounds = SoundModule(config: const SoundConfig(enabled: false));
+    GameKit.haptics = HapticsModule(
+      config: const HapticsConfig(enabled: false),
+    );
+  });
+
   testWidgets(
     'language row switches the about blurb and has no vibration switch',
     (tester) async {
