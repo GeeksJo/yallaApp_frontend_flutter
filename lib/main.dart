@@ -1,4 +1,6 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +25,9 @@ void main() async {
 
   // Host [DEFAULT] Firebase only — see game_kit HOST_ATT_AND_CRASHLYTICS_PROMPT.md.
   if (FirebaseService.instance.hasDefaultFirebaseApp) {
+    // Kit standard (HOST_ANALYTICS.md): debug builds never report into the
+    // production property. Before the iOS ATT hold below.
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(!kDebugMode);
     await GameKitIosAppTracking.deferFirebaseAnalyticsCollection();
     // Flutter will not accept a background-handler registration from inside
     // GameKit.initialize; it has to happen here in main, before runApp.

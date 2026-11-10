@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:yalla/l10n/app_localizations.dart';
@@ -11,10 +9,43 @@ import '../services/yalla_analytics.dart';
 import '../theme/app_theme.dart';
 import 'responsive_layout.dart';
 
-class LockedCategorySheet extends StatelessWidget {
+class LockedCategorySheet extends StatefulWidget {
   final GameCategory category;
 
-  const LockedCategorySheet({super.key, required this.category});
+  /// Whether the watch-ad row is a real rewarded offer. Remove Ads buyers get
+  /// the reward without an ad, so nothing is offered. Null reads the kit.
+  final bool? offerRewardedAd;
+
+  const LockedCategorySheet({
+    super.key,
+    required this.category,
+    this.offerRewardedAd,
+  });
+
+  @override
+  State<LockedCategorySheet> createState() => _LockedCategorySheetState();
+}
+
+class _LockedCategorySheetState extends State<LockedCategorySheet> {
+  late final YallaRewardedOffer _offer = YallaRewardedOffer(
+    offered:
+        widget.offerRewardedAd ??
+        (!GameKit.isInitialized || !GameKit.ads.shouldSkipAdGrantOffer),
+  );
+
+  GameCategory get category => widget.category;
+
+  @override
+  void initState() {
+    super.initState();
+    _offer.shown();
+  }
+
+  @override
+  void dispose() {
+    _offer.closed();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,14 +154,11 @@ class LockedCategorySheet extends StatelessWidget {
             busy: coinProvider.isCoinGrantInFlight,
             isAd: true,
             onTap: () async {
-              if (!GameKit.ads.shouldSkipAdGrantOffer) {
-                unawaited(
-                  GameAnalytics.logAdRewardedOffered(yallaFreeCoinsPlacement),
-                );
-              }
+              _offer.watchTapped();
               final AdGrantOutcome outcome = await coinProvider.watchAdForCoins(
                 context,
               );
+              _offer.watchFinished(outcome);
               if (!context.mounted) return;
               // The kit owns the copy, so each of the three non-granting
               // outcomes says something true. The old code discarded the

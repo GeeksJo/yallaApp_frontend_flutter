@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:game_kit/game_kit.dart';
 
 import 'app_navigator.dart';
+import 'yalla_analytics.dart';
 
 /// Asks the OS for its native review sheet when kit policy allows.
 ///
@@ -23,7 +24,7 @@ Future<bool> presentYallaRatingPromptIfEligible({
   return GameKitRatingPrompt.presentIfEligible(
     hostContext,
     level: level,
-    gameName: 'Yalla! - 5 seconds',
+    gameName: yallaAnalyticsGameName,
   );
 }
 
