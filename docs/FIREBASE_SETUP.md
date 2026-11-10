@@ -108,7 +108,19 @@ Every event, including kit events such as More Games, is sent to the host
 `[DEFAULT]` property (`yalla-f87b1`). The kit's named Firebase app is Remote
 Config only. Automatic screen reporting is off on both platforms so
 `GameAnalyticsNavigatorObserver` is the only `screen_view` source. The stable
-game name is `yalla`.
+game name is `yalla`, on every event including `rating_prompt_shown`.
+
+Debug builds turn collection off: `main.dart` calls
+`setAnalyticsCollectionEnabled(!kDebugMode)` right after Firebase starts and
+before the iOS ATT hold (kit standard, HOST_ANALYTICS.md). They still print
+`GameAnalytics: sent …` lines. Until the app is on a kit that ends the ATT
+hold with `!kDebugMode`, iOS debug builds report again after the ATT prompt.
+
+Rewarded offer (`placement` `free_coins`, `LockedCategorySheet`): one
+`ad_rewarded_offered` each time the locked-category sheet opens, and at most
+one `ad_rewarded_declined` per opening: the ad was closed early, or the sheet
+closed without a tap on the watch-ad row. Remove Ads buyers get neither. The
+kit logs `ad_grant` and `ad_rewarded_completed` for the watch.
 
 These console steps are not in the repo:
 

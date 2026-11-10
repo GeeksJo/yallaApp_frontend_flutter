@@ -9,6 +9,48 @@ const yallaAnalyticsGameName = 'yalla';
 /// Placement shared by the coin-ad offer and `requestAdGrant`.
 const yallaFreeCoinsPlacement = 'free_coins';
 
+/// Rewarded-offer analytics for one opening of the locked-category sheet.
+///
+/// One `ad_rewarded_offered` when the sheet shows the watch-ad option, and at
+/// most one `ad_rewarded_declined`: the ad was closed early, or the sheet
+/// closed without the player tapping watch. Nothing is logged when
+/// [offered] is false (Remove Ads: the chain grants without an ad). The kit
+/// logs `ad_grant` / `ad_rewarded_completed` for the watch itself.
+class YallaRewardedOffer {
+  YallaRewardedOffer({
+    required this.offered,
+    this.placement = yallaFreeCoinsPlacement,
+  });
+
+  final bool offered;
+  final String placement;
+  bool _shown = false;
+  bool _watchTapped = false;
+  bool _declined = false;
+
+  void shown() {
+    if (!offered || _shown) return;
+    _shown = true;
+    unawaited(GameAnalytics.logAdRewardedOffered(placement));
+  }
+
+  void watchTapped() => _watchTapped = true;
+
+  void watchFinished(AdGrantOutcome outcome) {
+    if (outcome == AdGrantOutcome.skipped) _decline();
+  }
+
+  void closed() {
+    if (!_watchTapped) _decline();
+  }
+
+  void _decline() {
+    if (!_shown || _declined) return;
+    _declined = true;
+    unawaited(GameAnalytics.logAdRewardedDeclined(placement));
+  }
+}
+
 abstract final class YallaRoute {
   static const home = '/';
   static const settings = '/settings';
@@ -70,4 +112,3 @@ void yallaSessionAbandoned() {
 Future<void> yallaSessionReplaySetup() {
   return GameSessionTracker.logReplayedOnly(yallaAnalyticsGameName);
 }
-
