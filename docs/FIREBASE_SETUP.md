@@ -39,18 +39,16 @@ itself silently would mean no kill switch and no push, with nothing to notice.
 | Key | Type | Suggested default | Used for |
 | --- | --- | --- | --- |
 | `ads_enabled` | Boolean | `true` | Ads kill switch. Only a value **set on the server** turns ads off |
-| `android_min_required_version` | String | empty | Force update on Android |
-| `ios_min_required_version` | String | empty | Force update on iOS |
+| `min_required_version_android` | String | empty | Force update on Android (kit standard) |
+| `min_required_version_ios` | String | empty | Force update on iOS (kit standard) |
 | `android_store_url` / `ios_store_url` | String | empty | Force update links |
 | `show_app_moved` | Boolean | `false` | App-moved gate |
 | `new_android_store_url` / `new_ios_store_url` | String | empty | App-moved links |
 
 Force update reads only the minimum for the running platform. Publish both
-new keys in the host `[DEFAULT]` project. Empty or missing values allow that
-platform through. The old `min_required_version` is ignored by this app;
-keep it in Firebase until older installed builds no longer need it.
-`YallaForceUpdateRemoteConfig` maps these names to the kit's platform keys
-and disables its shared-minimum fallback. Each minimum must refer to a
+keys in the host `[DEFAULT]` project. An empty value falls back to the legacy
+shared `min_required_version` (kit behaviour); keep that key in Firebase
+until older installed builds (up to 1.0.11) no longer need it. Each minimum must refer to a
 version already available on that platform's store.
 
 The kit's ads tunables (`interstitial_cooldown_seconds`,

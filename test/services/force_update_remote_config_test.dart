@@ -2,22 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_kit/game_kit.dart';
 import 'package:yalla/const/remote_config_keys.dart';
-import 'package:yalla/services/force_update_remote_config.dart';
 
 void main() {
   for (final isIos in <bool>[false, true]) {
     final platform = isIos ? 'iOS' : 'Android';
     final minimumKey = isIos
-        ? RemoteConfigKeys.iosMinRequiredVersion
-        : RemoteConfigKeys.androidMinRequiredVersion;
+        ? RemoteConfigKeys.minRequiredVersionIos
+        : RemoteConfigKeys.minRequiredVersionAndroid;
     final otherKey = isIos
-        ? RemoteConfigKeys.androidMinRequiredVersion
-        : RemoteConfigKeys.iosMinRequiredVersion;
+        ? RemoteConfigKeys.minRequiredVersionAndroid
+        : RemoteConfigKeys.minRequiredVersionIos;
     final storeKey = isIos
         ? RemoteConfigKeys.iosStoreUrl
         : RemoteConfigKeys.androidStoreUrl;
 
     group(platform, () {
+      test('host key is the kit standard key', () {
+        expect(
+          minimumKey,
+          isIos
+              ? ForceUpdateRemoteConfigKeys.minRequiredVersionIos
+              : ForceUpdateRemoteConfigKeys.minRequiredVersionAndroid,
+        );
+      });
+
       test('uses its own minimum and store URL', () async {
         final status = await _evaluate(
           isIos: isIos,
@@ -51,9 +59,8 @@ void main() {
             strings: <String, String>{
               if (minimum != null) minimumKey: minimum,
               otherKey: '9.0.0',
-              'min_required_version': '9.0.0',
-              'min_required_version_android': '9.0.0',
-              'min_required_version_ios': '9.0.0',
+              'android_min_required_version': '9.0.0',
+              'ios_min_required_version': '9.0.0',
             },
           );
 
@@ -61,6 +68,18 @@ void main() {
           expect(status.minimumVersion, isNull);
         });
       }
+
+      test('falls back to the legacy shared minimum when blank', () async {
+        final status = await _evaluate(
+          isIos: isIos,
+          strings: <String, String>{
+            minimumKey: '',
+            'min_required_version': '1.0.10',
+          },
+        );
+
+        expect(status.isRequired, isTrue);
+      });
 
       test('fails open when Remote Config is not ready', () async {
         final status = await _evaluate(
@@ -104,9 +123,7 @@ Future<ForceUpdateStatus> _evaluate({
       buttonColor: Colors.white,
       buttonTextColor: Colors.black,
     ),
-    remoteConfig: YallaForceUpdateRemoteConfig(
-      FakeGameKitRemoteConfig(isReady: isReady, strings: strings),
-    ),
+    remoteConfig: FakeGameKitRemoteConfig(isReady: isReady, strings: strings),
     installedVersionLoader: () async => '1.0.9',
     isIos: isIos,
   ).evaluate();

@@ -2,8 +2,8 @@
 
 A broken puzzle or a store-rejected binary needs a **hard stop**, not a
 snackbar. Yalla's `HostEmergencyGate` blocks the tree when host Remote Config
-`android_min_required_version` (Android) or `ios_min_required_version` (iOS)
-is higher than the installed app version.
+`min_required_version_android` (Android) or `min_required_version_ios` (iOS)
+(the game kit standard keys) is higher than the installed app version.
 
 `lib/src/force_update/` · wrap the app with `ForceUpdateGate`
 
@@ -17,8 +17,9 @@ This reads the **host** `[DEFAULT]` Firebase Remote Config, not the kit
 The kit reads the installed version through `PackageInfo.version`, which
 comes from the host `pubspec.yaml`. Do not pass a hardcoded current version.
 
-If RC is not ready, the installed version is unavailable, or the platform's
-minimum is empty, the gate **does not block** (fail open).
+If RC is not ready or the installed version is unavailable, the gate **does
+not block** (fail open). A blank platform minimum falls back to the legacy
+shared `min_required_version`; when that is blank too, nothing blocks.
 
 Compare with `isVersionLowerThan` (numeric segments). Branding
 (colors, illustration) is per-app on `ForceUpdateConfig`.
@@ -34,15 +35,15 @@ HostEmergencyGate(
 )
 ```
 
-The gate passes `YallaForceUpdateRemoteConfig` to `ForceUpdateService`.
-It maps the kit's `min_required_version_android` / `min_required_version_ios`
-reads to Yalla's `android_min_required_version` / `ios_min_required_version`.
-The old shared `min_required_version` is ignored, including when a platform
-minimum is missing. The other platform's minimum never blocks this platform.
+The gate passes the same host adapter to `ForceUpdateService`; key names go
+to Remote Config unchanged (SA-408). The other platform's minimum never blocks
+this platform.
 
-Publish the two new string parameters in the host Firebase project, with an
-empty default. Set each minimum only to a version available on that store.
-Keep the shared parameter for older app builds that still read it.
+Set each minimum only to a version available on that store. Keep the shared
+`min_required_version` for released builds up to 1.0.11, which read only it.
+The old `android_min_required_version` / `ios_min_required_version` were read
+only by unreleased builds; delete them with the shared key once a build on the
+standard keys is live on both stores.
 
 ## Known limits
 

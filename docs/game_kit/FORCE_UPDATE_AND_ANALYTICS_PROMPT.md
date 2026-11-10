@@ -13,9 +13,9 @@ Analytics needs no wiring here: every kit event goes to the host's own property.
 await Firebase.initializeApp();
 await FirebaseRemoteConfig.instance.fetchAndActivate();
 final androidMinVersion = FirebaseRemoteConfig.instance
-    .getString('android_min_required_version');
+    .getString('min_required_version_android');
 final iosMinVersion = FirebaseRemoteConfig.instance
-    .getString('ios_min_required_version');
+    .getString('min_required_version_ios');
 
 // Kit Firebase (shared Remote Config: ad timing, contact)
 await GameKit.initialize(
@@ -39,9 +39,7 @@ runApp(
     config: forceUpdateConfig,
     service: ForceUpdateService(
       config: forceUpdateConfig,
-      remoteConfig: YallaForceUpdateRemoteConfig(
-        const YallaRemoteConfigAdapter(),
-      ),
+      remoteConfig: const YallaRemoteConfigAdapter(),
     ),
     strings: (c) => ForceUpdateStrings.arabic(),
     child: MyApp(),
@@ -53,7 +51,7 @@ runApp(
 
 | Concern | Firebase project |
 | ------- | ---------------- |
-| Force update `android_min_required_version` / `ios_min_required_version` | **Host** `[DEFAULT]` |
+| Force update `min_required_version_android` / `min_required_version_ios` | **Host** `[DEFAULT]` |
 | Ads cooldown `interstitial_cooldown_seconds` | **Kit** `game_kit` app |
 | All analytics, More Games included | **Host** `[DEFAULT]` |
 

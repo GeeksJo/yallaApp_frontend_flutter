@@ -6,7 +6,6 @@ import 'package:game_kit/game_kit.dart';
 import '../theme/app_theme.dart';
 import 'emergency_block_notice.dart';
 import 'firebase_service.dart';
-import 'force_update_remote_config.dart';
 
 typedef CurrentVersionLoader = Future<String> Function();
 
@@ -150,7 +149,7 @@ class _HostEmergencyGateState extends State<HostEmergencyGate>
       } else {
         final forceUpdate = await ForceUpdateService(
           config: _forceUpdateConfig,
-          remoteConfig: YallaForceUpdateRemoteConfig(widget.remoteConfig),
+          remoteConfig: widget.remoteConfig,
           installedVersionLoader: widget.loadCurrentVersion,
         ).evaluate();
         next = _EmergencyState(

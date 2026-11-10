@@ -21,7 +21,7 @@ void main() {
       _app(
         remoteConfig: FakeGameKitRemoteConfig(
           strings: <String, String>{
-            RemoteConfigKeys.androidMinRequiredVersion: '1.0.10',
+            RemoteConfigKeys.minRequiredVersionAndroid: '1.0.10',
             RemoteConfigKeys.androidStoreUrl: 'https://example.com/update',
           },
         ),
@@ -40,7 +40,7 @@ void main() {
       _app(
         remoteConfig: FakeGameKitRemoteConfig(
           strings: <String, String>{
-            RemoteConfigKeys.androidMinRequiredVersion: '1.0.10',
+            RemoteConfigKeys.minRequiredVersionAndroid: '1.0.10',
           },
         ),
         child: Builder(
@@ -64,7 +64,7 @@ void main() {
           strings: <String, String>{
             RemoteConfigKeys.showAppMoved: 'true',
             RemoteConfigKeys.newAndroidStoreUrl: 'https://example.com/new',
-            RemoteConfigKeys.androidMinRequiredVersion: '1.0.10',
+            RemoteConfigKeys.minRequiredVersionAndroid: '1.0.10',
           },
         ),
       ),
@@ -100,11 +100,16 @@ void main() {
     );
   });
 
-  testWidgets('does not block for the removed shared minimum', (tester) async {
+  testWidgets('does not block for the old app-specific minimum keys', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _app(
         remoteConfig: FakeGameKitRemoteConfig(
-          strings: <String, String>{'min_required_version': '9.0.0'},
+          strings: <String, String>{
+            'android_min_required_version': '9.0.0',
+            'ios_min_required_version': '9.0.0',
+          },
         ),
       ),
     );
@@ -125,14 +130,14 @@ void main() {
     await tester.pump();
     expect(find.text('game'), findsOneWidget);
 
-    remoteConfig.set(RemoteConfigKeys.androidMinRequiredVersion, '1.0.10');
+    remoteConfig.set(RemoteConfigKeys.minRequiredVersionAndroid, '1.0.10');
     recheck.value += 1;
     await tester.pump();
     await tester.pump();
     expect(find.byType(ForceUpdateScreen), findsOneWidget);
     expect(find.text('game'), findsNothing);
 
-    remoteConfig.set(RemoteConfigKeys.androidMinRequiredVersion, '');
+    remoteConfig.set(RemoteConfigKeys.minRequiredVersionAndroid, '');
     recheck.value += 1;
     await tester.pump();
     await tester.pump();

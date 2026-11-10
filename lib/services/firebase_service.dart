@@ -129,8 +129,8 @@ class FirebaseService {
     RemoteConfigKeys.levelPlayIosInterstitialId: '',
     RemoteConfigKeys.levelPlayIosRewardedId: '',
     RemoteConfigKeys.levelPlayIosNativeId: '',
-    RemoteConfigKeys.androidMinRequiredVersion: '',
-    RemoteConfigKeys.iosMinRequiredVersion: '',
+    RemoteConfigKeys.minRequiredVersionAndroid: '',
+    RemoteConfigKeys.minRequiredVersionIos: '',
     RemoteConfigKeys.androidStoreUrl: '',
     RemoteConfigKeys.iosStoreUrl: '',
     RemoteConfigKeys.showAppMoved: false,
@@ -348,16 +348,16 @@ class FirebaseService {
     );
   }
 
-  String resolveAndroidMinRequiredVersion({String defaultValue = ''}) {
+  String resolveMinRequiredVersionAndroid({String defaultValue = ''}) {
     return readForKit(
-      RemoteConfigKeys.androidMinRequiredVersion,
+      RemoteConfigKeys.minRequiredVersionAndroid,
       defaultValue: defaultValue,
     );
   }
 
-  String resolveIosMinRequiredVersion({String defaultValue = ''}) {
+  String resolveMinRequiredVersionIos({String defaultValue = ''}) {
     return readForKit(
-      RemoteConfigKeys.iosMinRequiredVersion,
+      RemoteConfigKeys.minRequiredVersionIos,
       defaultValue: defaultValue,
     );
   }
@@ -405,8 +405,8 @@ class FirebaseService {
       RemoteConfigKeys.levelPlayIosInterstitialId ||
       RemoteConfigKeys.levelPlayIosRewardedId ||
       RemoteConfigKeys.levelPlayIosNativeId ||
-      RemoteConfigKeys.androidMinRequiredVersion ||
-      RemoteConfigKeys.iosMinRequiredVersion ||
+      RemoteConfigKeys.minRequiredVersionAndroid ||
+      RemoteConfigKeys.minRequiredVersionIos ||
       RemoteConfigKeys.androidStoreUrl ||
       RemoteConfigKeys.iosStoreUrl ||
       RemoteConfigKeys.showAppMoved ||

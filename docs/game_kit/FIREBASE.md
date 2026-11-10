@@ -29,7 +29,7 @@ than an error, so `FirebaseGameKitRemoteConfig` checks the value's *source*
 before trusting it. Without that check an absent `interstitial_cooldown_seconds`
 read as a **zero-second** cooldown and showed interstitials back to back.
 
-Force update **`min_required_version`** stays on **host** RC.
+Force update **`min_required_version_android`** / **`min_required_version_ios`** (kit standard; legacy fallback `min_required_version`) stay on **host** RC.
 See [FORCE_UPDATE.md](FORCE_UPDATE.md).
 
 **FCM** also stays on host `[DEFAULT]` - not this named app.
