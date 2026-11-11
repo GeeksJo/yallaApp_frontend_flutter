@@ -43,6 +43,11 @@ target 'Runner' do
   # the plugin pulls, and CocoaPods resolves that pairing more reliably than a
   # hand-picked number. On iOS the adapter brings the Unity Ads SDK with it.
   pod 'IronSourceUnityAdsAdapter'
+  # Meta Audience Network (bidding). Pulls FBAudienceNetwork. Placement ids
+  # are set in the LevelPlay dashboard. Meta's SKAdNetwork ids (v9wttpbfk9,
+  # n38lu8286q) are in Info.plist. Do not set META_Mixed_Audience: this app
+  # is not child-directed.
+  pod 'IronSourceFacebookAdapter'
 
   target 'RunnerTests' do
     inherit! :search_paths

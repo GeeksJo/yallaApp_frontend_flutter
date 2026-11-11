@@ -999,10 +999,10 @@ packages:
     dependency: transitive
     description:
       name: unity_levelplay_mediation
-      sha256: f76c9aa8a0e59ef2e747f58d32884ebe41da7ccebf8ac7666c79414a126413fa
+      sha256: ec40cb03bf3dc08658e471b0a2e3a56079bb6228701e948f832ae3e3687b783a
       url: "https://pub.dev"
     source: hosted
-    version: "9.3.0"
+    version: "9.4.0"
   universal_io:
     dependency: transitive
     description:
