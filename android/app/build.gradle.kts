@@ -92,20 +92,20 @@ dependencies {
     // LevelPlay network adapters. The unity_levelplay_mediation plugin ships
     // only the mediation SDK core, and game_kit is a pure Dart package with no
     // android/ of its own, so each host app declares the adapters it needs.
-    // The Unity Ads SDK is not pulled in transitively by the adapter.
     //
     // A missing adapter fails SILENTLY: the SDK initialises, the dashboard
     // shows the instance live, and no ad ever loads. Grep logcat for
     // "adapter was not loaded". See game_kit docs/LEVELPLAY_SETUP.md.
-    implementation("com.unity3d.ads-mediation:unityads-adapter:5.5.0")
-    implementation("com.unity3d.ads:unity-ads:4.16.6")
+    // From adapter 5.15.0 the Unity Ads SDK comes with the adapter (5.16.0 ->
+    // com.unity3d.ads:unity-ads 4.21.0), so it has no line of its own.
+    implementation("com.unity3d.ads-mediation:unityads-adapter:5.16.0")
 
-    // Meta Audience Network (bidding) via LevelPlay. From 5.6.0 the adapter
-    // declares the Meta SDK itself (5.6.0 -> com.facebook.android:audience-
-    // network-sdk 6.22.0), so unlike Unity Ads there is no second line. Meta's
-    // bidding minimum is SDK 6.21.0. Placement ids live in the LevelPlay
-    // dashboard, not here. Pair: mediation-sdk 9.6.1 (unity_levelplay_mediation
-    // 9.3.0). Meta's SDK talks to a local cache server on 127.0.0.1 over
-    // cleartext, allowed only for that host in res/xml/network_security_config.xml.
-    implementation("com.unity3d.ads-mediation:facebook-adapter:5.6.0")
+    // Meta Audience Network (bidding) via LevelPlay. The adapter declares the
+    // Meta SDK itself (5.7.0 -> com.facebook.android:audience-network-sdk
+    // 6.22.0), so there is no second line. Meta's bidding minimum is SDK 6.21.0.
+    // Placement ids live in the LevelPlay dashboard, not here. Pair:
+    // mediation-sdk 9.7.0 (unity_levelplay_mediation 9.4.0). Meta's SDK talks to
+    // a local cache server on 127.0.0.1 over cleartext, allowed only for that
+    // host in res/xml/network_security_config.xml.
+    implementation("com.unity3d.ads-mediation:facebook-adapter:5.7.0")
 }
