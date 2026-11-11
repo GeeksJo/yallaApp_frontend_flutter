@@ -99,4 +99,13 @@ dependencies {
     // "adapter was not loaded". See game_kit docs/LEVELPLAY_SETUP.md.
     implementation("com.unity3d.ads-mediation:unityads-adapter:5.5.0")
     implementation("com.unity3d.ads:unity-ads:4.16.6")
+
+    // Meta Audience Network (bidding) via LevelPlay. From 5.6.0 the adapter
+    // declares the Meta SDK itself (5.6.0 -> com.facebook.android:audience-
+    // network-sdk 6.22.0), so unlike Unity Ads there is no second line. Meta's
+    // bidding minimum is SDK 6.21.0. Placement ids live in the LevelPlay
+    // dashboard, not here. Pair: mediation-sdk 9.6.1 (unity_levelplay_mediation
+    // 9.3.0). Meta's SDK talks to a local cache server on 127.0.0.1 over
+    // cleartext, allowed only for that host in res/xml/network_security_config.xml.
+    implementation("com.unity3d.ads-mediation:facebook-adapter:5.6.0")
 }

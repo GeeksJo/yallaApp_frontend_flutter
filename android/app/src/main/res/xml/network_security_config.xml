@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Meta Audience Network (LevelPlay facebook-adapter) serves cached video
+     creatives from a local HTTP server on 127.0.0.1. Android 9+ blocks
+     cleartext by default, which breaks that playback, so cleartext is
+     allowed for the loopback address only. Every other host keeps the
+     platform default (HTTPS only). -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
