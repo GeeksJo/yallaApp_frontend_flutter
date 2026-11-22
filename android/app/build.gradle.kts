@@ -104,7 +104,7 @@ dependencies {
     // Meta SDK itself (5.7.0 -> com.facebook.android:audience-network-sdk
     // 6.22.0), so there is no second line. Meta's bidding minimum is SDK 6.21.0.
     // Placement ids live in the LevelPlay dashboard, not here. Pair:
-    // mediation-sdk 9.7.0 (unity_levelplay_mediation 9.4.0). Meta's SDK talks to
+    // mediation-sdk 9.8.0 (unity_levelplay_mediation 9.5.0). Meta's SDK talks to
     // a local cache server on 127.0.0.1 over cleartext, allowed only for that
     // host in res/xml/network_security_config.xml.
     implementation("com.unity3d.ads-mediation:facebook-adapter:5.7.0")
