@@ -49,6 +49,10 @@ target 'Runner' do
   # is not child-directed.
   pod 'IronSourceFacebookAdapter'
 
+  # Google AdMob via LevelPlay. Unpinned: each adapter version pins one exact
+  # Google-Mobile-Ads-SDK, so CocoaPods picks the one matching what google_mobile_ads resolves.
+  pod 'IronSourceAdMobAdapter'
+
   target 'RunnerTests' do
     inherit! :search_paths
   end

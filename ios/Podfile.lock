@@ -6,6 +6,7 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - Flutter
+  - FBAudienceNetwork (6.22.1)
   - Firebase/CoreOnly (12.19.0):
     - FirebaseCore (~> 12.19.0)
   - Firebase/Crashlytics (12.19.0):
@@ -182,7 +183,13 @@ PODS:
     - FlutterMacOS
   - in_app_review (2.0.0):
     - Flutter
+  - IronSourceAdMobAdapter (5.18.0.0):
+    - Google-Mobile-Ads-SDK (= 13.11.0)
+    - IronSourceSDK/Ads (~> 9.0)
   - IronSourceAdQualitySDK (9.10.0)
+  - IronSourceFacebookAdapter (5.6.0.0):
+    - FBAudienceNetwork (= 6.22.1)
+    - IronSourceSDK/Ads (~> 9.0)
   - IronSourceSDK (9.6.1.0):
     - IronSourceSDK/AdQuality (= 9.6.1.0)
     - IronSourceSDK/Ads (= 9.6.1.0)
@@ -243,6 +250,8 @@ DEPENDENCIES:
   - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - in_app_review (from `.symlinks/plugins/in_app_review/ios`)
+  - IronSourceAdMobAdapter
+  - IronSourceFacebookAdapter
   - IronSourceUnityAdsAdapter
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -256,6 +265,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - FBAudienceNetwork
     - Firebase
     - FirebaseABTesting
     - FirebaseAnalytics
@@ -275,7 +285,9 @@ SPEC REPOS:
     - GoogleDataTransport
     - GoogleUserMessagingPlatform
     - GoogleUtilities
+    - IronSourceAdMobAdapter
     - IronSourceAdQualitySDK
+    - IronSourceFacebookAdapter
     - IronSourceSDK
     - IronSourceUnityAdsAdapter
     - nanopb
@@ -338,6 +350,7 @@ SPEC CHECKSUMS:
   app_tracking_transparency: 3d84f147f67ca82d3c15355c36b1fa6b66ca7c92
   audioplayers_darwin: 835ced6edd4c9fc8ebb0a7cc9e294a91d99917d5
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
+  FBAudienceNetwork: 983cf7f3fcb37c3cf22125fe7ed74adf61c5ecce
   Firebase: 7ca191e43724142f79fae653547b3382c45413cc
   firebase_analytics: 99133ddb6f6cf89c0b49cafae131070607abbfa5
   firebase_core: 55de508663ceda7d1dc369a32b327a5655019ae2
@@ -369,7 +382,9 @@ SPEC CHECKSUMS:
   GoogleUtilities: 7dc09b3fa9ecb5c2298b952313d14628b61b9da3
   in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
   in_app_review: 7dd1ea365263f834b8464673f9df72c80c17c937
+  IronSourceAdMobAdapter: 523f853f0379b53aec0b5976391aafae7b554d73
   IronSourceAdQualitySDK: 779fc3754f27b3d5fae8da52c5709a2dbdb502a6
+  IronSourceFacebookAdapter: 5757f5cbc22223a4880819ab3db4baf37b7f64be
   IronSourceSDK: 89e641e95136aa2a3868a0e3659564a6392fe607
   IronSourceUnityAdsAdapter: 2eb3cd33a4a5af4c43b47e6af9b0ad054ee5f088
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
@@ -387,6 +402,6 @@ SPEC CHECKSUMS:
   vibration: 69774ad57825b11c951ee4c46155f455d7a592ce
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: 5729d1c9f66b9a5089fd3fe85c0b01cbe6f93d61
+PODFILE CHECKSUM: 00f7565430e27f397491b1656ccfe812ff4b5bf6
 
 COCOAPODS: 1.16.2

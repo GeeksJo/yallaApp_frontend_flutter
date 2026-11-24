@@ -108,4 +108,12 @@ dependencies {
     // a local cache server on 127.0.0.1 over cleartext, allowed only for that
     // host in res/xml/network_security_config.xml.
     implementation("com.unity3d.ads-mediation:facebook-adapter:5.7.0")
+
+    // Google AdMob via LevelPlay. 5.9.0 is the last adapter built on play-services-ads,
+    // the SDK google_mobile_ads links by default (the kit uses it for the UMP consent form).
+    // Adapters from 5.10.0 need Google's Next-Gen SDK (ads-mobile-sdk): the two SDKs cannot
+    // be in one app, so move to them only together with the plugin's USE_NEXT_GEN_SDK switch.
+    // The SDK line is the floor the adapter was built for; the plugin may resolve it higher.
+    implementation("com.unity3d.ads-mediation:admob-adapter:5.9.0")
+    implementation("com.google.android.gms:play-services-ads:25.3.0")
 }
