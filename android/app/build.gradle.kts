@@ -117,3 +117,18 @@ dependencies {
     implementation("com.unity3d.ads-mediation:admob-adapter:5.9.0")
     implementation("com.google.android.gms:play-services-ads:25.3.0")
 }
+
+// A store bundle must never be signed with the debug key (SA-547). Stop early,
+// with a clear message, when a release bundle is built without the upload key.
+// `flutter run --release` and release APKs for a device are not affected.
+gradle.taskGraph.whenReady {
+    val buildsReleaseBundle = allTasks.any {
+        it.project == project && Regex("^bundle.*Release$").matches(it.name)
+    }
+    if (buildsReleaseBundle && !rootProject.file("key.properties").exists()) {
+        throw GradleException(
+            "android/key.properties is missing: this release bundle would be signed with " +
+                "the debug key. Add key.properties and the upload keystore, then build again.",
+        )
+    }
+}
