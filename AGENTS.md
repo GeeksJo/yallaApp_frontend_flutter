@@ -50,7 +50,7 @@ Versions, the kit commit and store state are not written here: read
 - Own Remote Config keys (names in `lib/const/remote_config_keys.dart`): `ads_enabled`, `interstitial_cooldown_seconds`, LevelPlay app keys and unit ids per platform, force update (`min_required_version_android`, `min_required_version_ios`, store urls) and app moved (`show_app_moved`, `new_*_store_url`). Compiled defaults are in `FirebaseService` and `level_play_ids.dart`.
 - Interstitial every 2 completed rounds, LevelPlay production ids always (no test ids in debug).
 - Own settings look (`buildYallaGameKitSettingsUiConfig`), share text, reminder days (Mon, Wed, Fri at 18:00) and the four store products in `game_kit_products.dart` (remove ads and three donations).
-- Force update: the per-store keys were blank in the console on 18 Nov 2026. Check before relying on force update.
+- Force update: read the per-store keys in the Firebase console before relying on it; do not assume they are set.
 
 ## Rules for this app
 
